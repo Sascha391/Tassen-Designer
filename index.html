@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Foto Riede – Produkt gestalten</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2395C11F'/%3E%3Ctext x='50' y='72' font-family='Arial' font-size='64' font-weight='bold' font-style='italic' fill='white' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<style>
+  :root{
+    --gruen:#95C11F;        /* Foto-Riede-Markenfarbe */
+    --gruen-dark:#7BA017;
+    --dunkel:#1f2933;
+    --grau:#f4f5f7;
+    --grau2:#e4e7eb;
+    --text:#323f4b;
+    --radius:14px;
+    --schatten:0 6px 20px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,Helvetica,sans-serif;background:var(--grau);color:var(--text);line-height:1.5}
+  header{background:#fff;border-bottom:1px solid var(--grau2);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
+  header .brand-icon{width:40px;height:40px;border-radius:50%;background:var(--gruen);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-style:italic;font-size:1.4rem;flex-shrink:0}
+  header .logo{font-weight:700;font-size:1.25rem;color:var(--dunkel);letter-spacing:.5px;line-height:1.1}
+  header .logo span{color:var(--gruen)}
+  header .logo small{display:block;font-weight:400;font-size:.7rem;color:#7b8794;letter-spacing:0}
+  header .claim{color:#7b8794;font-size:.85rem;margin-left:auto}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:22px 16px 60px}
+
+  /* Produktauswahl */
+  .products{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+  .product{background:#fff;border:2px solid var(--grau2);border-radius:var(--radius);padding:14px 16px;min-width:130px;cursor:pointer;text-align:center;transition:.15s;position:relative}
+  .product:hover{border-color:var(--gruen);transform:translateY(-2px)}
+  .product.active{border-color:var(--gruen);box-shadow:var(--schatten)}
+  .product .emoji{font-size:1.9rem}
+  .product .name{font-weight:600;margin-top:4px;color:var(--dunkel)}
+  .product .price{font-size:.82rem;color:#7b8794}
+  .product.soon{opacity:.55;cursor:not-allowed}
+  .product .badge{position:absolute;top:-9px;right:-9px;background:var(--dunkel);color:#fff;font-size:.62rem;padding:2px 7px;border-radius:20px}
+  .size-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:#fff;border-radius:var(--radius);box-shadow:var(--schatten);padding:12px 18px;margin-bottom:22px}
+  .size-bar label{font-size:.85rem;color:#616e7c;font-weight:600;display:flex;align-items:center;gap:8px}
+  .size-bar select{border:1px solid var(--grau2);border-radius:8px;padding:8px;font-family:inherit;font-size:.9rem;background:#fff}
+  .size-bar .price-display{font-weight:700;color:var(--gruen);font-size:1.05rem}
+
+  .grid{display:grid;grid-template-columns:1fr 380px;gap:22px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+  .card{background:#fff;border-radius:var(--radius);box-shadow:var(--schatten);padding:18px}
+  .card h2{font-size:1rem;color:var(--dunkel);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+  /* Editor */
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .btn{border:none;border-radius:10px;padding:9px 13px;font-family:inherit;font-size:.85rem;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+  .btn-primary{background:var(--gruen);color:#fff}
+  .btn-primary:hover{background:var(--gruen-dark)}
+  .btn-light{background:var(--grau);color:var(--text)}
+  .btn-light:hover{background:var(--grau2)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .canvas-stage{background:repeating-conic-gradient(#f0f0f0 0% 25%, #fafafa 0% 50%) 50%/22px 22px;border:1px solid var(--grau2);border-radius:12px;padding:12px;display:flex;justify-content:center}
+  .design-frame{position:absolute;border:2px dashed var(--gruen);border-radius:3px;pointer-events:none;box-sizing:border-box}
+  .design-frame::after{content:'Design-Bereich';position:absolute;top:-9px;left:8px;background:#fff;color:var(--gruen);font-size:.62rem;font-weight:700;padding:0 5px}
+  .hint{font-size:.78rem;color:#7b8794;margin-top:8px;text-align:center}
+
+  .sub-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--grau2)}
+  .sub-controls label{font-size:.8rem;color:#616e7c;display:flex;align-items:center;gap:6px}
+  select,input[type=color]{font-family:inherit;border:1px solid var(--grau2);border-radius:8px;padding:6px;background:#fff}
+  input[type=color]{width:40px;height:34px;padding:2px;cursor:pointer}
+
+  /* Vorschau */
+  .preview-box{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .mug{position:relative;width:230px;height:190px}
+  .mug .body{position:absolute;left:20px;top:15px;width:160px;height:160px;background:#fff;border:3px solid #d2d6dc;border-radius:14px;overflow:hidden;box-shadow:inset -18px 0 30px rgba(0,0,0,.08)}
+  .mug .design{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat}
+  .mug .handle{position:absolute;right:8px;top:50px;width:52px;height:80px;border:14px solid #d2d6dc;border-radius:50%;background:transparent}
+  .mug .shine{position:absolute;left:26px;top:20px;width:20px;height:150px;background:linear-gradient(90deg,rgba(255,255,255,.7),transparent);border-radius:14px}
+
+  /* Formular */
+  .form-group{margin-bottom:12px}
+  .form-group label{display:block;font-size:.82rem;color:#616e7c;margin-bottom:4px;font-weight:500}
+  .form-group input,.form-group textarea{width:100%;border:1px solid var(--grau2);border-radius:9px;padding:10px;font-family:inherit;font-size:.9rem}
+  .form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--gruen)}
+  .qty{display:flex;align-items:center;gap:10px}
+  .qty button{width:34px;height:34px;border:1px solid var(--grau2);background:#fff;border-radius:8px;font-size:1.1rem;cursor:pointer}
+  .qty input{width:60px;text-align:center}
+  .submit-btn{width:100%;background:var(--gruen);color:#fff;border:none;border-radius:11px;padding:14px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:6px}
+  .submit-btn:hover{background:var(--gruen-dark)}
+
+  /* Erfolgs-Overlay */
+  .overlay{position:fixed;inset:0;background:rgba(31,41,51,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:var(--radius);padding:30px;max-width:420px;text-align:center;box-shadow:var(--schatten)}
+  .modal .check{font-size:3rem}
+  .modal h3{color:var(--dunkel);margin:10px 0}
+  .modal p{color:#616e7c;font-size:.9rem;margin-bottom:18px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand-icon">R</div>
+  <div class="logo">FOTO <span>RIEDE</span><small>Fotostudio beim Schwarzen Tor</small></div>
+  <div class="claim">Gestalte dein persönliches Produkt</div>
+</header>
+
+<div class="wrap">
+  <!-- PRODUKTAUSWAHL (wird aus dem Backend geladen) -->
+  <div class="products" id="products"></div>
+  <div class="size-bar" id="size-bar">
+    <label>Größe
+      <select id="size-select"></select>
+    </label>
+    <span class="price-display" id="price-display"></span>
+  </div>
+
+  <div class="grid">
+    <!-- EDITOR -->
+    <div class="card">
+      <h2>🎨 <span id="editor-title">Tasse gestalten</span></h2>
+      <div class="toolbar">
+        <button class="btn btn-primary" id="btn-upload">📷 Foto hochladen</button>
+        <input type="file" id="file-input" accept="image/*" hidden />
+        <button class="btn btn-light" id="btn-text">✍️ Text hinzufügen</button>
+        <button class="btn btn-light" id="btn-delete">🗑️ Auswahl löschen</button>
+        <button class="btn btn-light" id="btn-clear">↺ Alles zurücksetzen</button>
+      </div>
+
+      <div class="canvas-stage">
+        <canvas id="c" width="760" height="320"></canvas>
+      </div>
+      <p class="hint">Gestalte innerhalb des gestrichelten <b>Design-Rahmens</b> – dieser Bereich wird auf die Tasse gedruckt. Foto & Text frei verschieben, an den Ecken skalieren.</p>
+
+      <div class="sub-controls">
+        <label>Tassenfarbe
+          <input type="color" id="bg-color" value="#ffffff" />
+        </label>
+        <label>Schriftart
+          <select id="font-family">
+            <option value="Poppins">Poppins</option>
+            <option value="Montserrat">Montserrat</option>
+            <option value="Pacifico">Pacifico (Handschrift)</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Arial">Arial</option>
+          </select>
+        </label>
+        <label>Textfarbe
+          <input type="color" id="text-color" value="#95C11F" />
+        </label>
+      </div>
+    </div>
+
+    <!-- VORSCHAU + BESTELLUNG -->
+    <div>
+      <div class="card" style="margin-bottom:22px">
+        <h2>👀 Live-Vorschau</h2>
+        <div class="preview-box">
+          <div class="mug">
+            <div class="body"><div class="design" id="preview-design"></div></div>
+            <div class="shine"></div>
+            <div class="handle"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🛒 Bestellung</h2>
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" id="f-name" placeholder="Vor- und Nachname" />
+        </div>
+        <div class="form-group">
+          <label>E-Mail *</label>
+          <input type="email" id="f-email" placeholder="deine@email.de" />
+        </div>
+        <div class="form-group">
+          <label>Telefon</label>
+          <input type="tel" id="f-phone" placeholder="Optional" />
+        </div>
+        <div class="form-group">
+          <label>Menge</label>
+          <div class="qty">
+            <button type="button" id="qty-minus">−</button>
+            <input type="number" id="f-qty" value="1" min="1" />
+            <button type="button" id="qty-plus">+</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Anmerkung</label>
+          <textarea id="f-note" rows="2" placeholder="Wünsche, Abholung/Versand …"></textarea>
+        </div>
+        <button class="submit-btn" id="btn-submit">Bestellung absenden ☕</button>
+      </div>
+    </div>
+  </div>
+
+  <footer style="text-align:center;color:#7b8794;font-size:.82rem;margin-top:40px;line-height:1.7">
+    <strong style="color:var(--dunkel)">Foto Riede</strong> · Fotostudio beim Schwarzen Tor<br>
+    Hauptstraße 10 · 78628 Rottweil · Tel. 0741 / 7515<br>
+    <a href="mailto:info@foto-riede.de" style="color:var(--gruen)">info@foto-riede.de</a> ·
+    <a href="https://www.foto-riede.de" style="color:var(--gruen)">www.foto-riede.de</a>
+  </footer>
+</div>
+
+<!-- Erfolgsmeldung -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="check">✅</div>
+    <h3>Bestellung eingegangen!</h3>
+    <p id="modal-text">Vielen Dank!</p>
+    <button class="btn btn-primary" id="btn-close" style="margin:0 auto">Alles klar</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     FIREBASE – firebaseConfig deines NEUEN Projekts hier einsetzen.
+     Dieselbe Config bitte auch in bestellungen.html eintragen.
+     ============================================================ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // Firebase-Projekt: foto-riede-tassen
+  const FB = {
+    apiKey: "AIzaSyA1EL7rzsLnbpAfNmwpNJWksF4q8Riaqhk",
+    authDomain: "foto-riede-tassen.firebaseapp.com",
+    projectId: "foto-riede-tassen",
+    storageBucket: "foto-riede-tassen.firebasestorage.app",
+    messagingSenderId: "395108248089",
+    appId: "1:395108248089:web:bff0e2f68dc226bd93d888"
+  };
+
+  let db = null;
+  try { db = getFirestore(initializeApp(FB)); }
+  catch(e){ console.warn('Firebase noch nicht konfiguriert:', e.message); }
+
+  // Bestellung in die Sammlung 'tassen_bestellungen' schreiben
+  window._saveOrder = (data)=>{
+    if(!db) throw new Error('Die Bestell-Datenbank ist noch nicht eingerichtet.');
+    return addDoc(collection(db, 'tassen_bestellungen'), data);
+  };
+
+  // Aktive Produkte aus dem Backend laden (Sammlung 'tassen_produkte')
+  async function loadProducts(){
+    if(!db) return null;
+    try{
+      const snap = await getDocs(collection(db, 'tassen_produkte'));
+      const list = snap.docs.map(d=>d.data()).filter(p=>p.aktiv!==false);
+      list.sort((a,b)=>(a.reihenfolge||0)-(b.reihenfolge||0));
+      return list;
+    }catch(e){ console.warn('Produkte konnten nicht geladen werden:', e.message); return null; }
+  }
+  loadProducts().then(list=> window.applyProducts && window.applyProducts(list));
+</script>
+
+<script>
+/* ============================================================
+   Editor (Fabric.js)
+   ============================================================ */
+const canvas = new fabric.Canvas('c', { backgroundColor:'#ffffff', preserveObjectStacking:true });
+const previewDesign = document.getElementById('preview-design');
+
+/* Gestrichelter Design-Rahmen als Overlay über der Zeichenfläche
+   (reines DOM-Element -> erscheint NICHT in der Druckdatei/Vorschau) */
+const designFrameEl = document.createElement('div');
+designFrameEl.className = 'design-frame';
+designFrameEl.style.display = 'none';
+canvas.wrapperEl.appendChild(designFrameEl);
+
+/* Anteil Designbereich/Papier – steuert den Ausschnitt der Tassen-Vorschau */
+let previewFx = 1, previewFy = 1;
+
+function updatePreview(){
+  const data = canvas.toDataURL({ format:'png' });
+  previewDesign.style.backgroundImage = `url(${data})`;
+  previewDesign.style.backgroundColor = canvas.backgroundColor;
+  previewDesign.style.backgroundRepeat = 'no-repeat';
+  previewDesign.style.backgroundPosition = 'center';
+  previewDesign.style.backgroundSize = (previewFx<1 || previewFy<1) ? `${(100/previewFx).toFixed(2)}% ${(100/previewFy).toFixed(2)}%` : 'cover';
+}
+canvas.on('after:render', updatePreview);
+
+/* Foto hochladen */
+document.getElementById('btn-upload').onclick = ()=>document.getElementById('file-input').click();
+document.getElementById('file-input').onchange = (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    fabric.Image.fromURL(ev.target.result, (img)=>{
+      const scale = Math.min(300/img.width, 260/img.height);
+      img.set({ left:120, top:30, scaleX:scale, scaleY:scale, cornerColor:'#95C11F', cornerStyle:'circle', transparentCorners:false });
+      canvas.add(img); canvas.setActiveObject(img); canvas.renderAll();
+    });
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+};
+
+/* Text hinzufügen */
+document.getElementById('btn-text').onclick = ()=>{
+  const t = new fabric.IText('Dein Text', {
+    left:200, top:130, fontFamily:document.getElementById('font-family').value,
+    fill:document.getElementById('text-color').value, fontSize:48,
+    cornerColor:'#95C11F', cornerStyle:'circle', transparentCorners:false
+  });
+  canvas.add(t); canvas.setActiveObject(t); canvas.renderAll();
+};
+
+/* Auswahl / Steuerung */
+document.getElementById('btn-delete').onclick = ()=>{
+  const o = canvas.getActiveObject(); if(o){ canvas.remove(o); canvas.renderAll(); }
+};
+document.getElementById('btn-clear').onclick = ()=>{
+  if(confirm('Wirklich alles zurücksetzen?')){ canvas.clear(); canvas.backgroundColor='#ffffff'; document.getElementById('bg-color').value='#ffffff'; canvas.renderAll(); }
+};
+document.getElementById('bg-color').oninput = (e)=>{ canvas.backgroundColor = e.target.value; canvas.renderAll(); };
+
+/* Aktive Texteigenschaften ändern */
+function applyToActiveText(prop, val){
+  const o = canvas.getActiveObject();
+  if(o && (o.type==='i-text'||o.type==='text')){ o.set(prop,val); canvas.renderAll(); }
+}
+document.getElementById('font-family').onchange=(e)=>applyToActiveText('fontFamily',e.target.value);
+document.getElementById('text-color').oninput=(e)=>applyToActiveText('fill',e.target.value);
+
+/* ============================================================
+   Produkte + Größen (aus dem Backend)
+   ============================================================ */
+let PRODUCTS = [];
+let curProd = null, curSize = null;
+const productsEl = document.getElementById('products');
+const sizeBar    = document.getElementById('size-bar');
+const sizeSelect = document.getElementById('size-select');
+const priceEl    = document.getElementById('price-display');
+const euro = (n)=> (Number(n)||0).toFixed(2).replace('.',',')+' €';
+
+/* Wird vom Firebase-Modul mit den geladenen Produkten aufgerufen.
+   Fallback (Standard-Tasse), falls Backend leer / noch nicht eingerichtet. */
+window.applyProducts = function(list){
+  if(!list || !list.length){
+    list = [{ name:'Tasse', emoji:'☕', groessen:[{label:'Standard 0,33 L', preis:12.90, papierBreite:24, papierHoehe:10, breite:20, hoehe:8}] }];
+  }
+  PRODUCTS = list;
+  productsEl.innerHTML = list.map((p,i)=>{
+    const preise = (p.groessen||[]).map(g=>Number(g.preis)||0).filter(x=>x>0);
+    const ab = preise.length ? 'ab '+euro(Math.min(...preise)) : '';
+    return `<div class="product${i===0?' active':''}" data-i="${i}">
+      <div class="emoji">${p.emoji||'📦'}</div>
+      <div class="name">${p.name||'Produkt'}</div>
+      <div class="price">${ab}</div></div>`;
+  }).join('');
+  productsEl.querySelectorAll('.product').forEach(el=> el.onclick=()=>selectProduct(+el.dataset.i));
+  selectProduct(0);
+};
+
+function selectProduct(i){
+  curProd = PRODUCTS[i]; if(!curProd) return;
+  productsEl.querySelectorAll('.product').forEach((el,idx)=>el.classList.toggle('active', idx===i));
+  document.getElementById('editor-title').textContent = (curProd.name||'Produkt')+' gestalten';
+  const gs = curProd.groessen||[];
+  sizeSelect.innerHTML = gs.map((g,idx)=>`<option value="${idx}">${g.label||'Größe '+(idx+1)}</option>`).join('');
+  sizeBar.style.display = gs.length ? 'flex' : 'none';
+  selectSize(0);
+}
+sizeSelect.onchange = ()=> selectSize(+sizeSelect.value);
+
+function selectSize(idx){
+  const gs = curProd.groessen||[];
+  curSize = gs[idx] || null;
+  if(!curSize){ priceEl.textContent=''; return; }
+  sizeSelect.value = String(idx);
+  const dB = curSize.breite, dH = curSize.hoehe;
+  const pB = curSize.papierBreite || dB, pH = curSize.papierHoehe || dH;
+  const dims = (dB && dH) ? ` · Design ${dB}×${dH} cm` : '';
+  priceEl.textContent = euro(curSize.preis) + dims;
+  resizeCanvasTo(pB, pH, dB, dH);
+}
+
+/* Zeichenfläche = Papiergröße; gestrichelter Rahmen = Designbereich (zentriert) */
+function resizeCanvasTo(pB, pH, dB, dH){
+  const W = 700;
+  const ratio = (pB>0 && pH>0) ? (pH/pB) : (320/760);
+  const H = Math.round(W*ratio);
+  canvas.setDimensions({ width:W, height:H });
+
+  const useFrame = (dB>0 && dH>0 && pB>0 && pH>0 && (dB<pB || dH<pH));
+  previewFx = useFrame ? (dB/pB) : 1;
+  previewFy = useFrame ? (dH/pH) : 1;
+  if(useFrame){
+    const gw = W*previewFx, gh = H*previewFy;
+    designFrameEl.style.display = 'block';
+    designFrameEl.style.left  = ((W-gw)/2)+'px';
+    designFrameEl.style.top   = ((H-gh)/2)+'px';
+    designFrameEl.style.width = gw+'px';
+    designFrameEl.style.height= gh+'px';
+  } else {
+    designFrameEl.style.display = 'none';
+  }
+  canvas.renderAll();
+}
+
+/* Menge */
+document.getElementById('qty-minus').onclick=()=>{ const q=document.getElementById('f-qty'); q.value=Math.max(1,+q.value-1); };
+document.getElementById('qty-plus').onclick=()=>{ const q=document.getElementById('f-qty'); q.value=+q.value+1; };
+
+/* ============================================================
+   Bestellung absenden
+   ============================================================ */
+const submitBtn = document.getElementById('btn-submit');
+submitBtn.onclick = async ()=>{
+  const name=document.getElementById('f-name').value.trim();
+  const email=document.getElementById('f-email').value.trim();
+  if(!name || !email){ alert('Bitte Name und E-Mail ausfüllen.'); return; }
+  if(canvas.getObjects().length===0){ alert('Bitte gestalte zuerst dein Produkt (Foto oder Text hinzufügen).'); return; }
+  if(typeof window._saveOrder !== 'function'){ alert('Die Bestell-Datenbank ist noch nicht eingerichtet (Firebase-Config fehlt).'); return; }
+
+  if(!curProd){ alert('Bitte wähle ein Produkt aus.'); return; }
+
+  /* Druckdatei in Papiergröße erzeugen (~250 DPI, JPEG – kompakt für Firestore) */
+  canvas.discardActiveObject(); canvas.renderAll();
+  const paperW = (curSize && (curSize.papierBreite || curSize.breite)) || 20;
+  const targetPx = Math.max(1000, Math.min(2600, Math.round(paperW/2.54*250)));
+  const design = canvas.toDataURL({ format:'jpeg', quality:0.82, multiplier: targetPx/canvas.getWidth() });
+
+  const data = {
+    produkt: curProd.name,
+    groesse: curSize ? (curSize.label||'') : '',
+    preis:   curSize ? (Number(curSize.preis)||0) : 0,
+    papier:  (curSize && curSize.papierBreite && curSize.papierHoehe) ? `${curSize.papierBreite}×${curSize.papierHoehe} cm` : '',
+    masse:   (curSize && curSize.breite && curSize.hoehe) ? `${curSize.breite}×${curSize.hoehe} cm` : '',
+    menge: parseInt(document.getElementById('f-qty').value,10) || 1,
+    name, email,
+    phone: document.getElementById('f-phone').value.trim(),
+    note: document.getElementById('f-note').value.trim(),
+    design,                       // druckfertiges Motiv als Bild
+    status: 'neu',
+    created: new Date().toISOString()
+  };
+
+  const original = submitBtn.textContent;
+  submitBtn.disabled = true; submitBtn.textContent = 'Wird gesendet …';
+  try{
+    await window._saveOrder(data);
+    document.getElementById('overlay').classList.add('show');
+  }catch(err){
+    alert('Leider ist beim Senden ein Fehler aufgetreten. Bitte versuche es erneut.\n\n'+err.message);
+  }finally{
+    submitBtn.disabled = false; submitBtn.textContent = original;
+  }
+};
+document.getElementById('btn-close').onclick=()=>document.getElementById('overlay').classList.remove('show');
+
+/* Start-Vorschau */
+setTimeout(updatePreview, 300);
+
+/* Sicherheitsnetz: falls das Backend nicht antwortet, Standard-Produkt zeigen */
+setTimeout(()=>{ if(!PRODUCTS.length) window.applyProducts(null); }, 1800);
+</script>
+</body>
+</html>

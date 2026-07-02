@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Foto Riede – Verwaltung</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2395C11F'/%3E%3Ctext x='50' y='72' font-family='Arial' font-size='64' font-weight='bold' font-style='italic' fill='white' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --gruen:#95C11F;--gruen-dark:#7BA017;--dunkel:#1f2933;--grau:#f4f5f7;--grau2:#e4e7eb;
+    --text:#323f4b;--radius:14px;--schatten:0 6px 20px rgba(0,0,0,.08);
+    --neu:#2563eb;--arbeit:#d97706;--fertig:#059669;--abgeholt:#6b7280;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,Helvetica,sans-serif;background:var(--grau);color:var(--text)}
+  header{background:#fff;border-bottom:1px solid var(--grau2);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
+  header .logo{font-weight:700;font-size:1.2rem;color:var(--dunkel)}
+  header .logo span{color:var(--gruen)}
+  header .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .brand-icon{width:38px;height:38px;border-radius:50%;background:var(--gruen);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-style:italic;font-size:1.3rem;flex-shrink:0}
+  .btn{border:none;border-radius:10px;padding:9px 14px;font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer;transition:.15s}
+  .btn-primary{background:var(--gruen);color:#fff}.btn-primary:hover{background:var(--gruen-dark)}
+  .btn-light{background:var(--grau);color:var(--text)}.btn-light:hover{background:var(--grau2)}
+
+  /* Login */
+  .login-wrap{min-height:80vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-card{background:#fff;border-radius:var(--radius);box-shadow:var(--schatten);padding:34px;width:100%;max-width:360px;text-align:center}
+  .login-card h1{font-size:1.3rem;color:var(--dunkel);margin-bottom:6px}
+  .login-card p{color:#7b8794;font-size:.85rem;margin-bottom:20px}
+  .login-card input{width:100%;border:1px solid var(--grau2);border-radius:10px;padding:12px;font-family:inherit;font-size:.95rem;margin-bottom:12px}
+  .login-card input:focus{outline:none;border-color:var(--gruen)}
+  .login-card .btn-primary{width:100%;padding:12px}
+  .err{color:#dc2626;font-size:.82rem;min-height:18px;margin-bottom:8px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px}
+  .tab{background:var(--grau);border:none;border-radius:10px;padding:9px 16px;font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer;color:var(--text)}
+  .tab.active{background:var(--dunkel);color:#fff}
+
+  .wrap{max-width:1150px;margin:0 auto;padding:22px 16px 60px}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+  .section-head h2{font-size:1.15rem;color:var(--dunkel)}
+
+  /* Bestellungen */
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+  .stat{background:#fff;border-radius:12px;box-shadow:var(--schatten);padding:12px 18px;min-width:120px}
+  .stat .num{font-size:1.5rem;font-weight:700;color:var(--dunkel)}
+  .stat .lbl{font-size:.78rem;color:#7b8794}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .chip{background:#fff;border:1px solid var(--grau2);border-radius:20px;padding:7px 14px;font-size:.82rem;cursor:pointer;transition:.15s}
+  .chip.active{background:var(--dunkel);color:#fff;border-color:var(--dunkel)}
+  .orders{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+  .order{background:#fff;border-radius:var(--radius);box-shadow:var(--schatten);overflow:hidden;display:flex;flex-direction:column}
+  .order .thumb{background:repeating-conic-gradient(#f0f0f0 0% 25%,#fafafa 0% 50%) 50%/18px 18px;padding:10px;display:flex;justify-content:center}
+  .order .thumb img{max-width:100%;max-height:170px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+  .order .info{padding:14px}
+  .order .info .row{display:flex;justify-content:space-between;gap:10px;font-size:.86rem;margin-bottom:5px}
+  .order .info .row .k{color:#7b8794}
+  .order .info .name{font-weight:600;color:var(--dunkel);font-size:1rem;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .order .note{background:var(--grau);border-radius:8px;padding:8px 10px;font-size:.82rem;color:#52606d;margin-top:8px}
+  .status-badge{font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:20px;color:#fff;white-space:nowrap}
+  .s-neu{background:var(--neu)}.s-arbeit{background:var(--arbeit)}.s-fertig{background:var(--fertig)}.s-abgeholt{background:var(--abgeholt)}
+  .order .actions{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--grau2);flex-wrap:wrap;align-items:center;margin-top:auto}
+  .order .actions select{flex:1;min-width:110px;border:1px solid var(--grau2);border-radius:8px;padding:8px;font-family:inherit;font-size:.82rem;background:#fff}
+  .icon-btn{border:none;background:var(--grau);border-radius:8px;padding:8px 10px;cursor:pointer;font-size:.9rem}
+  .icon-btn:hover{background:var(--grau2)}
+  .icon-btn.del:hover{background:#fde2e2}
+  .empty{text-align:center;color:#7b8794;padding:60px 20px;grid-column:1/-1}
+  .time{font-size:.75rem;color:#9aa5b1;margin-top:6px}
+
+  /* Produkte */
+  .prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+  .prod-card{background:#fff;border-radius:var(--radius);box-shadow:var(--schatten);padding:16px;display:flex;flex-direction:column}
+  .prod-card .head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .prod-card .head .emoji{font-size:1.8rem}
+  .prod-card .head .name{font-weight:700;color:var(--dunkel);font-size:1.05rem}
+  .prod-card .aktiv{font-size:.68rem;font-weight:600;padding:2px 9px;border-radius:20px;color:#fff;margin-left:auto}
+  .prod-card .aktiv.ja{background:var(--fertig)}.prod-card .aktiv.nein{background:var(--abgeholt)}
+  .size-list{list-style:none;font-size:.85rem;margin:4px 0 12px}
+  .size-list li{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--grau2)}
+  .size-list li .m{color:#7b8794;font-size:.78rem}
+  .prod-card .actions{display:flex;gap:8px;margin-top:auto}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(31,41,51,.6);display:none;align-items:center;justify-content:center;z-index:60;padding:16px;overflow:auto}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:var(--radius);padding:24px;width:100%;max-width:560px;box-shadow:var(--schatten);max-height:92vh;overflow:auto}
+  .modal h3{color:var(--dunkel);margin-bottom:16px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:.8rem;color:#616e7c;margin-bottom:4px;font-weight:600}
+  .field input[type=text],.field input[type=number]{width:100%;border:1px solid var(--grau2);border-radius:9px;padding:10px;font-family:inherit;font-size:.9rem}
+  .field input:focus{outline:none;border-color:var(--gruen)}
+  .field.inline{display:flex;align-items:center;gap:8px}
+  .field.inline label{margin:0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .sizes-head{font-size:.85rem;font-weight:700;color:var(--dunkel);margin:16px 0 8px}
+  .size-row{border:1px solid var(--grau2);border-radius:10px;padding:10px;margin-bottom:10px}
+  .size-row .sr-top{display:grid;grid-template-columns:1fr 90px 34px;gap:8px;align-items:center;margin-bottom:8px}
+  .size-row .sr-dims{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.75rem;color:#616e7c}
+  .size-row .sr-dims .lbl{font-weight:700;color:var(--dunkel);margin-right:2px}
+  .size-row input{border:1px solid var(--grau2);border-radius:8px;padding:8px;font-family:inherit;font-size:.82rem}
+  .size-row .sr-dims input{width:52px;text-align:center;padding:6px}
+  .size-row .rm{border:none;background:#fde2e2;border-radius:8px;padding:8px;cursor:pointer}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="login-wrap">
+  <div class="login-card">
+    <div class="brand-icon" style="margin:0 auto 12px">R</div>
+    <h1>Verwaltung 🔒</h1>
+    <p>Bitte melde dich an.</p>
+    <input type="email" id="login-email" placeholder="E-Mail" autocomplete="username" />
+    <input type="password" id="login-pass" placeholder="Passwort" autocomplete="current-password" />
+    <div class="err" id="login-err"></div>
+    <button class="btn btn-primary" id="btn-login">Anmelden</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <header>
+    <div class="brand-icon">R</div>
+    <div class="logo">FOTO <span>RIEDE</span> · Verwaltung</div>
+    <div class="right">
+      <span id="user-email" style="font-size:.82rem;color:#7b8794"></span>
+      <button class="btn btn-light" id="btn-logout">Abmelden</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="tabs" style="margin-bottom:22px">
+      <button class="tab active" data-view="orders">📥 Bestellungen</button>
+      <button class="tab" data-view="products">🏷️ Produkte &amp; Preise</button>
+    </div>
+
+    <!-- BESTELLUNGEN -->
+    <div id="view-orders">
+      <div class="stats" id="stats"></div>
+      <div class="filters" id="filters">
+        <div class="chip active" data-f="alle">Alle</div>
+        <div class="chip" data-f="neu">Neu</div>
+        <div class="chip" data-f="in Arbeit">In Arbeit</div>
+        <div class="chip" data-f="fertig">Fertig</div>
+        <div class="chip" data-f="abgeholt">Abgeholt</div>
+      </div>
+      <div class="orders" id="orders"></div>
+    </div>
+
+    <!-- PRODUKTE -->
+    <div id="view-products" style="display:none">
+      <div class="section-head">
+        <h2>Produkte &amp; Preise</h2>
+        <button class="btn btn-primary" id="btn-new-product">＋ Neues Produkt</button>
+      </div>
+      <div class="prod-grid" id="prod-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUKT-MODAL -->
+<div class="modal-bg" id="prod-modal">
+  <div class="modal">
+    <h3 id="modal-title">Produkt anlegen</h3>
+    <div class="grid2">
+      <div class="field"><label>Produktname</label><input type="text" id="p-name" placeholder="z. B. Tasse" /></div>
+      <div class="field"><label>Symbol (Emoji)</label><input type="text" id="p-emoji" placeholder="z. B. ☕" maxlength="4" /></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Reihenfolge</label><input type="number" id="p-order" value="1" min="0" /></div>
+      <div class="field inline" style="align-items:flex-end;padding-bottom:8px"><input type="checkbox" id="p-aktiv" checked style="width:18px;height:18px"/> <label style="margin:0">Aktiv (für Kunden sichtbar)</label></div>
+    </div>
+
+    <div class="sizes-head">Größen (Kunde wählt eine davon) &nbsp;–&nbsp; <span style="font-weight:400;color:#7b8794">📄 Papier = ganzes Druckblatt · 🎨 Design = Gestaltungsbereich</span></div>
+    <div id="sizes-container"></div>
+    <button class="btn btn-light" id="btn-add-size" style="margin-top:4px">＋ Größe hinzufügen</button>
+
+    <div class="modal-actions">
+      <button class="btn btn-light" id="btn-cancel-product">Abbrechen</button>
+      <button class="btn btn-primary" id="btn-save-product">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+/* Firebase-Projekt: foto-riede-tassen */
+const FB = {
+  apiKey: "AIzaSyA1EL7rzsLnbpAfNmwpNJWksF4q8Riaqhk",
+  authDomain: "foto-riede-tassen.firebaseapp.com",
+  projectId: "foto-riede-tassen",
+  storageBucket: "foto-riede-tassen.firebasestorage.app",
+  messagingSenderId: "395108248089",
+  appId: "1:395108248089:web:bff0e2f68dc226bd93d888"
+};
+
+const app = initializeApp(FB);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const $ = (id)=>document.getElementById(id);
+const euro = (n)=> (Number(n)||0).toFixed(2).replace('.',',')+' €';
+let unsubO=null, unsubP=null;
+let orders=[], products=[], filter='alle', editId=null;
+
+/* ---- Login ---- */
+$('btn-login').onclick = async ()=>{
+  $('login-err').textContent='';
+  try{ await signInWithEmailAndPassword(auth, $('login-email').value.trim(), $('login-pass').value); }
+  catch(e){ $('login-err').textContent='Anmeldung fehlgeschlagen. E-Mail/Passwort prüfen.'; }
+};
+$('login-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') $('btn-login').click(); });
+$('btn-logout').onclick = ()=> signOut(auth);
+
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    $('login').style.display='none'; $('app').style.display='block';
+    $('user-email').textContent=user.email;
+    listenOrders(); listenProducts();
+  }else{
+    $('app').style.display='none'; $('login').style.display='flex';
+    if(unsubO){unsubO();unsubO=null;} if(unsubP){unsubP();unsubP=null;}
+  }
+});
+
+/* ---- Tabs ---- */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    $('view-orders').style.display = t.dataset.view==='orders' ? 'block':'none';
+    $('view-products').style.display = t.dataset.view==='products' ? 'block':'none';
+  };
+});
+
+/* ================= BESTELLUNGEN ================= */
+function listenOrders(){
+  unsubO = onSnapshot(query(collection(db,'tassen_bestellungen'), orderBy('created','desc')), snap=>{
+    orders = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderOrders();
+  }, err=>{ $('orders').innerHTML=`<div class="empty">Fehler: ${err.message}</div>`; });
+}
+$('filters').querySelectorAll('.chip').forEach(c=>{
+  c.onclick=()=>{ $('filters').querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); c.classList.add('active'); filter=c.dataset.f; renderOrders(); };
+});
+const sClass={'neu':'s-neu','in Arbeit':'s-arbeit','fertig':'s-fertig','abgeholt':'s-abgeholt'};
+const fmt=(iso)=>{ try{return new Date(iso).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch{return iso||'';} };
+
+function renderOrders(){
+  const cnt=(s)=>orders.filter(o=>o.status===s).length;
+  $('stats').innerHTML=`
+    <div class="stat"><div class="num">${orders.length}</div><div class="lbl">Bestellungen</div></div>
+    <div class="stat"><div class="num" style="color:var(--neu)">${cnt('neu')}</div><div class="lbl">Neu</div></div>
+    <div class="stat"><div class="num" style="color:var(--arbeit)">${cnt('in Arbeit')}</div><div class="lbl">In Arbeit</div></div>
+    <div class="stat"><div class="num" style="color:var(--fertig)">${cnt('fertig')}</div><div class="lbl">Fertig</div></div>`;
+  const list = filter==='alle'?orders:orders.filter(o=>o.status===filter);
+  if(!list.length){ $('orders').innerHTML=`<div class="empty">Keine Bestellungen in dieser Ansicht.</div>`; return; }
+  $('orders').innerHTML = list.map(o=>{
+    const sc=sClass[o.status]||'s-neu';
+    const opt=(v)=>`<option value="${v}" ${o.status===v?'selected':''}>${v}</option>`;
+    const summe = (Number(o.preis)||0)*(o.menge||1);
+    return `<div class="order">
+      <div class="thumb">${o.design?`<img src="${o.design}" alt="Design">`:'<div class="empty">Kein Bild</div>'}</div>
+      <div class="info">
+        <div class="name">${o.name||'-'} <span class="status-badge ${sc}">${o.status||'neu'}</span></div>
+        <div class="row"><span class="k">Produkt</span><span>${o.produkt||'-'}${o.groesse?' · '+o.groesse:''}</span></div>
+        <div class="row"><span class="k">Menge</span><span>${o.menge||1}${o.preis?' × '+euro(o.preis):''}</span></div>
+        ${o.preis?`<div class="row"><span class="k">Summe</span><span><b>${euro(summe)}</b></span></div>`:''}
+        ${(o.masse||o.papier)?`<div class="row"><span class="k">Maße</span><span>${o.papier?'📄 '+o.papier:''}${(o.papier&&o.masse)?' · ':''}${o.masse?'🎨 '+o.masse:''}</span></div>`:''}
+        <div class="row"><span class="k">E-Mail</span><span>${o.email||'-'}</span></div>
+        <div class="row"><span class="k">Telefon</span><span>${o.phone||'-'}</span></div>
+        ${o.note?`<div class="note">📝 ${o.note}</div>`:''}
+        <div class="time">🕒 ${fmt(o.created)}</div>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" data-dl="${o.id}" title="Motiv herunterladen">⬇️ Motiv</button>
+        <select data-status="${o.id}">${opt('neu')}${opt('in Arbeit')}${opt('fertig')}${opt('abgeholt')}</select>
+        <button class="icon-btn del" data-del="${o.id}" title="Löschen">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+  $('orders').querySelectorAll('[data-status]').forEach(sel=>{ sel.onchange=()=>updateDoc(doc(db,'tassen_bestellungen',sel.dataset.status),{status:sel.value}); });
+  $('orders').querySelectorAll('[data-del]').forEach(b=>{ b.onclick=()=>{ if(confirm('Diese Bestellung wirklich löschen?')) deleteDoc(doc(db,'tassen_bestellungen',b.dataset.del)); }; });
+  $('orders').querySelectorAll('[data-dl]').forEach(b=>{ b.onclick=()=>{ const o=orders.find(x=>x.id===b.dataset.dl); if(!o||!o.design)return; const a=document.createElement('a'); a.href=o.design; a.download=`${(o.produkt||'Motiv')}_${(o.name||'Kunde').replace(/\s+/g,'_')}.jpg`; a.click(); }; });
+}
+
+/* ================= PRODUKTE ================= */
+function listenProducts(){
+  unsubP = onSnapshot(collection(db,'tassen_produkte'), snap=>{
+    products = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    products.sort((a,b)=>(a.reihenfolge||0)-(b.reihenfolge||0));
+    renderProducts();
+  }, err=>{ $('prod-grid').innerHTML=`<div class="empty">Fehler: ${err.message}</div>`; });
+}
+
+function renderProducts(){
+  if(!products.length){ $('prod-grid').innerHTML=`<div class="empty">Noch keine Produkte. Lege mit „＋ Neues Produkt" dein erstes an (z. B. Tasse).</div>`; return; }
+  $('prod-grid').innerHTML = products.map(p=>{
+    const sizes=(p.groessen||[]).map(g=>{
+      const d=(g.breite&&g.hoehe)?'🎨 '+g.breite+'×'+g.hoehe:'';
+      const pa=(g.papierBreite&&g.papierHoehe)?'📄 '+g.papierBreite+'×'+g.papierHoehe:'';
+      return `<li><span>${g.label||'—'} · <b>${euro(g.preis)}</b></span><span class="m">${[pa,d].filter(Boolean).join(' · ')}</span></li>`;
+    }).join('') || '<li class="m">Keine Größen</li>';
+    return `<div class="prod-card">
+      <div class="head"><span class="emoji">${p.emoji||'📦'}</span><span class="name">${p.name||'Produkt'}</span>
+        <span class="aktiv ${p.aktiv!==false?'ja':'nein'}">${p.aktiv!==false?'aktiv':'inaktiv'}</span></div>
+      <ul class="size-list">${sizes}</ul>
+      <div class="actions">
+        <button class="btn btn-light" data-edit="${p.id}" style="flex:1">✏️ Bearbeiten</button>
+        <button class="icon-btn del" data-delp="${p.id}">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+  $('prod-grid').querySelectorAll('[data-edit]').forEach(b=>{ b.onclick=()=>openModal(products.find(p=>p.id===b.dataset.edit)); });
+  $('prod-grid').querySelectorAll('[data-delp]').forEach(b=>{ b.onclick=()=>{ if(confirm('Dieses Produkt wirklich löschen?')) deleteDoc(doc(db,'tassen_produkte',b.dataset.delp)); }; });
+}
+
+/* Modal */
+function addSizeRow(s={}){
+  const div=document.createElement('div');
+  div.className='size-row';
+  div.innerHTML=`
+    <div class="sr-top">
+      <input type="text" class="s-label" placeholder="Bezeichnung, z. B. Standard 0,33 L" value="${s.label||''}">
+      <input type="number" class="s-preis" step="0.01" min="0" placeholder="Preis €" value="${s.preis??''}">
+      <button class="rm" title="Entfernen">✕</button>
+    </div>
+    <div class="sr-dims">
+      <span class="lbl">📄 Papier</span>
+      <input type="number" class="s-pB" step="0.1" min="0" placeholder="B" value="${s.papierBreite??''}"> ×
+      <input type="number" class="s-pH" step="0.1" min="0" placeholder="H" value="${s.papierHoehe??''}"> cm
+      &nbsp;&nbsp;
+      <span class="lbl">🎨 Design</span>
+      <input type="number" class="s-dB" step="0.1" min="0" placeholder="B" value="${s.breite??''}"> ×
+      <input type="number" class="s-dH" step="0.1" min="0" placeholder="H" value="${s.hoehe??''}"> cm
+    </div>`;
+  div.querySelector('.rm').onclick=()=>div.remove();
+  $('sizes-container').appendChild(div);
+}
+function openModal(p){
+  editId = p ? p.id : null;
+  $('modal-title').textContent = p ? 'Produkt bearbeiten' : 'Produkt anlegen';
+  $('p-name').value = p?.name || '';
+  $('p-emoji').value = p?.emoji || '';
+  $('p-order').value = p?.reihenfolge ?? (products.length+1);
+  $('p-aktiv').checked = p ? p.aktiv!==false : true;
+  $('sizes-container').innerHTML='';
+  const gs = (p?.groessen&&p.groessen.length)?p.groessen:[{}];
+  gs.forEach(addSizeRow);
+  $('prod-modal').classList.add('show');
+}
+function closeModal(){ $('prod-modal').classList.remove('show'); editId=null; }
+$('btn-new-product').onclick=()=>openModal(null);
+$('btn-add-size').onclick=()=>addSizeRow();
+$('btn-cancel-product').onclick=closeModal;
+$('prod-modal').onclick=(e)=>{ if(e.target.id==='prod-modal') closeModal(); };
+
+$('btn-save-product').onclick = async ()=>{
+  const name=$('p-name').value.trim();
+  if(!name){ alert('Bitte einen Produktnamen eingeben.'); return; }
+  const groessen=[...$('sizes-container').querySelectorAll('.size-row')].map(r=>({
+    label: r.querySelector('.s-label').value.trim(),
+    preis: parseFloat(r.querySelector('.s-preis').value)||0,
+    papierBreite: parseFloat(r.querySelector('.s-pB').value)||0,
+    papierHoehe: parseFloat(r.querySelector('.s-pH').value)||0,
+    breite: parseFloat(r.querySelector('.s-dB').value)||0,
+    hoehe: parseFloat(r.querySelector('.s-dH').value)||0
+  })).filter(g=>g.label || g.preis);
+  if(!groessen.length){ alert('Bitte mindestens eine Größe mit Preis anlegen.'); return; }
+  const obj={
+    name, emoji:$('p-emoji').value.trim()||'📦',
+    reihenfolge: parseInt($('p-order').value,10)||0,
+    aktiv: $('p-aktiv').checked,
+    groessen
+  };
+  const btn=$('btn-save-product'); btn.disabled=true; btn.textContent='Speichern …';
+  try{
+    if(editId) await updateDoc(doc(db,'tassen_produkte',editId), obj);
+    else await addDoc(collection(db,'tassen_produkte'), {...obj, created:new Date().toISOString()});
+    closeModal();
+  }catch(e){ alert('Fehler beim Speichern: '+e.message); }
+  finally{ btn.disabled=false; btn.textContent='Speichern'; }
+};
+</script>
+</body>
+</html>
