@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "foto-riede-fun-produkte",
     "public": ".",
     "ignore": [
       "firebase.json",
