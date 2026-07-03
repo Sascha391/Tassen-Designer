@@ -102,6 +102,27 @@
   .size-row .sr-dims input{width:52px;text-align:center;padding:6px}
   .size-row .rm{border:none;background:#fde2e2;border-radius:8px;padding:8px;cursor:pointer}
   .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+
+  /* Verwaltung: Hintergründe & Vorlagen */
+  .admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .admin-card{background:#fff;border-radius:12px;box-shadow:var(--schatten);overflow:hidden;display:flex;flex-direction:column}
+  .admin-card .prev{height:110px;background-size:cover;background-position:center;background-color:#eef1f4}
+  .admin-card .body{padding:10px 12px}
+  .admin-card .nm{font-weight:700;color:var(--dunkel);font-size:.92rem}
+  .admin-card .meta{font-size:.72rem;color:#7b8794;margin-top:2px}
+  .admin-card .row{display:flex;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--grau2);margin-top:auto;flex-wrap:wrap}
+  .admin-card .row input[type=number]{width:52px;border:1px solid var(--grau2);border-radius:8px;padding:6px;font-family:inherit;font-size:.8rem}
+  .admin-card .aktiv-toggle{font-size:.72rem;display:flex;align-items:center;gap:4px;color:#616e7c}
+  .color-list{display:flex;flex-wrap:wrap;gap:12px}
+  .color-chip{position:relative;width:66px;height:66px;border-radius:12px;box-shadow:var(--schatten);border:1px solid var(--grau2);overflow:hidden;display:flex;align-items:flex-end}
+  .color-chip .x{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:#fff;border:1px solid var(--grau2);cursor:pointer;font-size:.78rem;line-height:20px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.18);z-index:2}
+  .color-chip .lb{font-size:.6rem;background:rgba(255,255,255,.88);width:100%;text-align:center;padding:2px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .add-inline{display:inline-flex;gap:6px;align-items:center;background:#fff;border:1px solid var(--grau2);border-radius:10px;padding:4px 6px}
+  .add-inline input[type=color]{width:34px;height:30px;border:none;background:none;cursor:pointer;padding:0}
+  .add-inline input[type=text]{border:1px solid var(--grau2);border-radius:8px;padding:6px;font-family:inherit;font-size:.8rem}
+  .empty{text-align:center;color:#7b8794;padding:40px 20px;width:100%}
+  .modal select,.modal textarea{width:100%;border:1px solid var(--grau2);border-radius:9px;padding:10px;font-family:inherit;font-size:.9rem}
+  .modal input[type=color]{width:100%;height:40px;border:1px solid var(--grau2);border-radius:9px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -131,9 +152,12 @@
   </header>
 
   <div class="wrap">
-    <div class="tabs" style="margin-bottom:22px">
+    <div class="tabs" style="margin-bottom:22px;flex-wrap:wrap">
       <button class="tab active" data-view="orders">📥 Bestellungen</button>
       <button class="tab" data-view="products">🏷️ Produkte &amp; Preise</button>
+      <button class="tab" data-view="backgrounds">🎨 Hintergründe</button>
+      <button class="tab" data-view="colors">🖌️ Farben &amp; Rahmen</button>
+      <button class="tab" data-view="templates">✨ Vorlagen</button>
     </div>
 
     <!-- BESTELLUNGEN -->
@@ -156,6 +180,52 @@
         <button class="btn btn-primary" id="btn-new-product">＋ Neues Produkt</button>
       </div>
       <div class="prod-grid" id="prod-grid"></div>
+    </div>
+
+    <!-- HINTERGRÜNDE -->
+    <div id="view-backgrounds" style="display:none">
+      <div class="section-head">
+        <h2>Design-Hintergründe</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-light" id="btn-seed-bg">⬇️ Standard-Designs laden</button>
+          <button class="btn btn-primary" id="btn-new-bg">＋ Eigener Hintergrund</button>
+        </div>
+      </div>
+      <p style="color:#7b8794;font-size:.85rem;margin-bottom:16px">Reihenfolge, sichtbar/aus und Löschen für alle Hintergründe. Eigene per Bild-Upload, Farbe oder Verlauf. „Standard-Designs laden" füllt einmalig die eingebauten Motive ein.</p>
+      <div class="admin-grid" id="bg-list"></div>
+    </div>
+
+    <!-- FARBEN & RAHMEN -->
+    <div id="view-colors" style="display:none">
+      <div class="section-head">
+        <h2>Hintergrundfarben</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-light" id="btn-seed-hgf">⬇️ Standard laden</button>
+          <span class="add-inline"><input type="color" id="hgf-new" value="#95C11F"><button class="btn btn-primary" id="btn-add-hgf">＋ Farbe</button></span>
+        </div>
+      </div>
+      <div class="color-list" id="hgf-list"></div>
+
+      <div class="section-head" style="margin-top:30px">
+        <h2>Rahmenfarben (für Fotos/Objekte)</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-light" id="btn-seed-rf">⬇️ Standard laden</button>
+          <span class="add-inline"><input type="text" id="rf-new-name" placeholder="Name" style="width:90px"><input type="color" id="rf-new" value="#D4AF37"><button class="btn btn-primary" id="btn-add-rf">＋ Rahmen</button></span>
+        </div>
+      </div>
+      <div class="color-list" id="rf-list"></div>
+    </div>
+
+    <!-- VORLAGEN -->
+    <div id="view-templates" style="display:none">
+      <div class="section-head">
+        <h2>Vorlagen</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-light" id="btn-seed-tmpl">⬇️ Standard laden</button>
+          <button class="btn btn-primary" id="btn-new-tmpl">＋ Neue Vorlage</button>
+        </div>
+      </div>
+      <div class="admin-grid" id="tmpl-admin-list"></div>
     </div>
   </div>
 </div>
@@ -181,6 +251,60 @@
       <button class="btn btn-light" id="btn-cancel-product">Abbrechen</button>
       <button class="btn btn-primary" id="btn-save-product">Speichern</button>
     </div>
+  </div>
+</div>
+
+<!-- HINTERGRUND-MODAL -->
+<div class="modal-bg" id="bg-modal">
+  <div class="modal">
+    <h3 id="bg-modal-title">Hintergrund</h3>
+    <div class="field"><label>Name</label><input type="text" id="bg-name" placeholder="z. B. Sommerwiese"></div>
+    <div class="field" id="bg-f-type"><label>Typ</label>
+      <select id="bg-type">
+        <option value="image">Bild hochladen</option>
+        <option value="color">Einfarbig</option>
+        <option value="gradient">Farbverlauf</option>
+      </select>
+    </div>
+    <div class="field" id="bg-f-image"><label>Bild (wird als Hintergrund über die ganze Fläche gelegt)</label>
+      <input type="file" id="bg-image" accept="image/*"><div id="bg-image-prev" style="margin-top:8px;font-size:.78rem;color:#7b8794"></div>
+    </div>
+    <div class="grid2">
+      <div class="field" id="bg-f-color"><label>Farbe</label><input type="color" id="bg-color" value="#95C11F"></div>
+      <div class="field" id="bg-f-color2"><label>Farbe 2 (nur Verlauf)</label><input type="color" id="bg-color2" value="#ffffff"></div>
+    </div>
+    <div class="field" id="bg-f-dir"><label>Verlaufsrichtung</label>
+      <select id="bg-dir"><option value="v">oben → unten</option><option value="h">links → rechts</option><option value="diag">diagonal</option></select>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Reihenfolge</label><input type="number" id="bg-order" value="100"></div>
+      <div class="field inline" style="align-items:flex-end;padding-bottom:8px"><input type="checkbox" id="bg-aktiv" checked style="width:18px;height:18px"> <label style="margin:0">Sichtbar</label></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-light" id="bg-cancel">Abbrechen</button><button class="btn btn-primary" id="bg-save">Speichern</button></div>
+  </div>
+</div>
+
+<!-- VORLAGE-MODAL -->
+<div class="modal-bg" id="tmpl-modal">
+  <div class="modal">
+    <h3 id="tmpl-modal-title">Vorlage</h3>
+    <div class="grid2">
+      <div class="field"><label>Name</label><input type="text" id="t-name" placeholder="z. B. Geburtstag"></div>
+      <div class="field"><label>Symbol (Emoji)</label><input type="text" id="t-emoji" maxlength="4" placeholder="🎂"></div>
+    </div>
+    <div class="field"><label>Hintergrundfarbe</label><input type="color" id="t-bg" value="#ffffff"></div>
+    <div class="field"><label>Überschrift (Enter = neue Zeile, leer = keine)</label><textarea id="t-text" rows="2" placeholder="Alles Gute!"></textarea></div>
+    <div class="grid2">
+      <div class="field"><label>Schriftart</label><select id="t-font"><option>Pacifico</option><option>Poppins</option><option>Montserrat</option><option>Georgia</option><option>Arial</option></select></div>
+      <div class="field"><label>Schriftfarbe</label><input type="color" id="t-fill" value="#EF476F"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Schriftgröße</label><input type="number" id="t-size" value="44"></div>
+      <div class="field"><label>Reihenfolge</label><input type="number" id="t-order" value="100"></div>
+    </div>
+    <div class="field"><label>Sticker (Emojis mit Leerzeichen getrennt)</label><input type="text" id="t-stickers" placeholder="🎉 🎂 🎈"></div>
+    <div class="field inline"><input type="checkbox" id="t-aktiv" checked style="width:18px;height:18px"> <label style="margin:0">Sichtbar</label></div>
+    <div class="modal-actions"><button class="btn btn-light" id="t-cancel">Abbrechen</button><button class="btn btn-primary" id="t-save">Speichern</button></div>
   </div>
 </div>
 
@@ -221,20 +345,21 @@ onAuthStateChanged(auth, (user)=>{
   if(user){
     $('login').style.display='none'; $('app').style.display='block';
     $('user-email').textContent=user.email;
-    listenOrders(); listenProducts();
+    listenOrders(); listenProducts(); listenBackends();
   }else{
     $('app').style.display='none'; $('login').style.display='flex';
     if(unsubO){unsubO();unsubO=null;} if(unsubP){unsubP();unsubP=null;}
+    unsubB.forEach(u=>u&&u()); unsubB=[];
   }
 });
 
 /* ---- Tabs ---- */
+const VIEWS = ['orders','products','backgrounds','colors','templates'];
 document.querySelectorAll('.tab').forEach(t=>{
   t.onclick=()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
-    $('view-orders').style.display = t.dataset.view==='orders' ? 'block':'none';
-    $('view-products').style.display = t.dataset.view==='products' ? 'block':'none';
+    VIEWS.forEach(v=> $('view-'+v).style.display = (t.dataset.view===v)?'block':'none');
   };
 });
 
@@ -386,6 +511,305 @@ $('btn-save-product').onclick = async ()=>{
   }catch(e){ alert('Fehler beim Speichern: '+e.message); }
   finally{ btn.disabled=false; btn.textContent='Speichern'; }
 };
+
+/* ---- Hintergrund-Hilfsfunktionen (aus index.html, für Vorschau & Seeding) ---- */
+function bgURI(def, w, h){
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>`
+            + `<rect width='100%' height='100%' fill='${def.base||'#ffffff'}'/>${def.render(w,h)}</svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+/* Aquarell-Kleckse: organische Ränder über Turbulenz-Displacement */
+function wcBlobs(w,h,arr){
+  let defs='', body='';
+  arr.forEach((b,i)=>{
+    defs += `<filter id='wf${i}' x='-40%' y='-40%' width='180%' height='180%'>`
+          + `<feTurbulence type='fractalNoise' baseFrequency='${b.bf||'0.012 0.016'}' numOctaves='4' seed='${b.seed||i*9+3}' result='n'/>`
+          + `<feDisplacementMap in='SourceGraphic' in2='n' scale='${b.scale||60}'/></filter>`;
+    body += `<ellipse cx='${b.cx}' cy='${b.cy}' rx='${b.rx}' ry='${b.ry}' fill='${b.color}' opacity='${b.op||0.5}' filter='url(#wf${i})'/>`;
+  });
+  return `<defs>${defs}</defs>${body}`;
+}
+function bokehBg(w,h){
+  const defs=`<defs><filter id='bk'><feGaussianBlur stdDeviation='${Math.round(Math.max(w,h)*0.012)}'/></filter></defs>`;
+  const pts=[[.1,.2,.09],[.25,.62,.06],[.4,.3,.11],[.55,.72,.05],[.62,.24,.08],[.75,.55,.1],[.85,.2,.06],[.9,.75,.09],[.18,.85,.07],[.5,.5,.05],[.33,.14,.04],[.7,.86,.06],[.95,.45,.05],[.07,.5,.05]];
+  let body=`<g filter='url(#bk)'>`;
+  pts.forEach((p,i)=> body+=`<circle cx='${Math.round(w*p[0])}' cy='${Math.round(h*p[1])}' r='${Math.round(Math.min(w,h)*p[2])}' fill='#ffffff' opacity='${(0.35+(i%3)*0.14).toFixed(2)}'/>`);
+  return defs+body+`</g>`;
+}
+function streuBg(w,h){
+  const cols=['#EF9A9A','#A5D6A7','#90CAF9','#FFCC80','#CE93D8','#B0BEC5','#F48FB1'];
+  const pts=[[.08,.12],[.2,.3],[.33,.1],[.45,.28],[.58,.15],[.7,.34],[.82,.12],[.9,.3],[.14,.55],[.27,.7],[.4,.55],[.52,.72],[.64,.58],[.77,.74],[.88,.6],[.1,.85],[.24,.92],[.37,.82],[.5,.94],[.62,.85],[.75,.93],[.86,.82],[.95,.5],[.05,.4],[.3,.45],[.55,.42],[.8,.46]];
+  let body='';
+  pts.forEach((p,i)=>{ const c=cols[i%cols.length]; const r=(Math.min(w,h)*(0.006+(i%3)*0.004)).toFixed(1); body+=`<circle cx='${Math.round(w*p[0])}' cy='${Math.round(h*p[1])}' r='${r}' fill='${c}'/>`; });
+  return body;
+}
+function stripesHalf(w,h,color){
+  let s=''; const x0=Math.round(w*0.42), gap=h/15;
+  for(let y=gap*0.6; y<h; y+=gap){ s+=`<rect x='${x0}' y='${Math.round(y)}' width='${w-x0}' height='${Math.round(gap*0.42)}' fill='${color}'/>`; }
+  return s;
+}
+function stripesVertical(w,h,color){
+  let s=''; const gap=w/16;
+  for(let x=gap*0.5; x<w; x+=gap){ s+=`<rect x='${Math.round(x)}' y='0' width='${Math.round(gap*0.4)}' height='${h}' fill='${color}'/>`; }
+  return s;
+}
+function marbleBg(w,h){
+  const defs=`<defs><filter id='mb'><feTurbulence type='fractalNoise' baseFrequency='0.008 0.02' numOctaves='5' seed='7' result='n'/><feDisplacementMap in='SourceGraphic' in2='n' scale='42'/></filter></defs>`;
+  let veins='';
+  for(let i=0;i<6;i++){ const y=h*(0.12+i*0.15); veins+=`<path d='M0,${Math.round(y)} C ${Math.round(w*0.32)},${Math.round(y-h*0.07)} ${Math.round(w*0.6)},${Math.round(y+h*0.07)} ${w},${Math.round(y)}' fill='none' stroke='#c7bfae' stroke-width='${1.4+(i%2)*1.2}' opacity='0.65' filter='url(#mb)'/>`; }
+  return defs+veins;
+}
+function terrazzoBg(w,h){
+  const cols=['#EF9A9A','#90CAF9','#A5D6A7','#FFCC80','#CE93D8','#80CBC4','#F48FB1','#B0BEC5','#FFD54F'];
+  const pts=[[.08,.12],[.2,.3],[.33,.1],[.45,.28],[.58,.15],[.7,.34],[.82,.12],[.9,.3],[.14,.55],[.27,.7],[.4,.55],[.52,.72],[.64,.58],[.77,.74],[.88,.6],[.1,.85],[.24,.92],[.37,.82],[.5,.94],[.62,.85],[.75,.93],[.86,.82],[.95,.5],[.05,.4],[.3,.45],[.55,.42],[.8,.46]];
+  let body='';
+  pts.forEach((p,i)=>{ const c=cols[i%cols.length]; const r=(Math.min(w,h)*(0.012+(i%3)*0.006)).toFixed(1); const rot=(i*47)%360; body+=`<ellipse cx='${Math.round(w*p[0])}' cy='${Math.round(h*p[1])}' rx='${r}' ry='${(r*0.7).toFixed(1)}' fill='${c}' transform='rotate(${rot} ${Math.round(w*p[0])} ${Math.round(h*p[1])})'/>`; });
+  return body;
+}
+function bokehWarm(w,h){
+  const defs=`<defs><filter id='bw'><feGaussianBlur stdDeviation='${Math.round(Math.max(w,h)*0.012)}'/></filter></defs>`;
+  const cols=['#FFE0B2','#FFCC80','#FFF3E0','#FFD180'];
+  const pts=[[.12,.25,.1],[.28,.65,.06],[.42,.32,.12],[.58,.7,.05],[.66,.22,.08],[.78,.55,.11],[.88,.28,.06],[.92,.75,.09],[.2,.85,.07],[.5,.5,.05],[.35,.13,.04],[.72,.85,.06]];
+  let body=`<g filter='url(#bw)'>`;
+  pts.forEach((p,i)=> body+=`<circle cx='${Math.round(w*p[0])}' cy='${Math.round(h*p[1])}' r='${Math.round(Math.min(w,h)*p[2])}' fill='${cols[i%cols.length]}' opacity='${(0.4+(i%3)*0.14).toFixed(2)}'/>`);
+  return defs+body+`</g>`;
+}
+const BACKGROUNDS = [
+  { id:'wc-purple', name:'Aquarell Lila',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.28,cy:h*0.42,rx:w*0.34,ry:h*0.52,color:'#7E57C2',op:.5,seed:12,scale:70},{cx:w*0.16,cy:h*0.24,rx:w*0.22,ry:h*0.3,color:'#B39DDB',op:.5,seed:4,scale:52}]) },
+  { id:'wc-orange', name:'Aquarell Orange', render:(w,h)=>wcBlobs(w,h,[{cx:w*0.24,cy:h*0.5,rx:w*0.3,ry:h*0.6,color:'#FB8C00',op:.5,seed:7,scale:72},{cx:w*0.34,cy:h*0.32,rx:w*0.2,ry:h*0.26,color:'#FFB74D',op:.45,seed:15,scale:52}]) },
+  { id:'wc-pink',   name:'Aquarell Pink',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.3,cy:h*0.45,rx:w*0.34,ry:h*0.5,color:'#EC407A',op:.5,seed:9,scale:70},{cx:w*0.2,cy:h*0.7,rx:w*0.22,ry:h*0.28,color:'#F48FB1',op:.45,seed:20,scale:52}]) },
+  { id:'wc-red',    name:'Aquarell Rot',    render:(w,h)=>wcBlobs(w,h,[{cx:w*0.72,cy:h*0.5,rx:w*0.34,ry:h*0.55,color:'#E53935',op:.48,seed:2,scale:72},{cx:w*0.8,cy:h*0.7,rx:w*0.2,ry:h*0.26,color:'#EF9A9A',op:.42,seed:13,scale:50}]) },
+  { id:'wc-teal',   name:'Aquarell Türkis', render:(w,h)=>wcBlobs(w,h,[{cx:w*0.72,cy:h*0.5,rx:w*0.32,ry:h*0.55,color:'#26A69A',op:.5,seed:3,scale:70},{cx:w*0.8,cy:h*0.3,rx:w*0.2,ry:h*0.26,color:'#80CBC4',op:.45,seed:18,scale:52}]) },
+  { id:'wc-blue',   name:'Aquarell Blau',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.75,cy:h*0.55,rx:w*0.34,ry:h*0.55,color:'#1E88E5',op:.5,seed:6,scale:72},{cx:w*0.68,cy:h*0.75,rx:w*0.2,ry:h*0.24,color:'#90CAF9',op:.45,seed:14,scale:50}]) },
+  { id:'wc-green',  name:'Aquarell Grün',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.5,cy:h*0.22,rx:w*0.4,ry:h*0.34,color:'#66BB6A',op:.45,seed:8,scale:66},{cx:w*0.6,cy:h*0.3,rx:w*0.24,ry:h*0.24,color:'#A5D6A7',op:.4,seed:16,scale:48}]) },
+  { id:'grad-sunset', name:'Sonnenuntergang', base:'#FFF3E0', render:(w,h)=>`<defs><linearGradient id='gs' x1='0' y1='1' x2='0' y2='0'><stop offset='0' stop-color='#FFE0B2'/><stop offset='.55' stop-color='#FF8A65'/><stop offset='1' stop-color='#F06292'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gs)'/>` },
+  { id:'grad-sky',    name:'Himmel',          render:(w,h)=>`<defs><linearGradient id='gk' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#4FC3F7'/><stop offset='1' stop-color='#E1F5FE'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gk)'/>` },
+  { id:'grad-pastel', name:'Pastell',         render:(w,h)=>`<defs><linearGradient id='gp' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#FCE4EC'/><stop offset='.5' stop-color='#E1F5FE'/><stop offset='1' stop-color='#F1F8E9'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gp)'/>` },
+  { id:'wc-yellow', name:'Aquarell Gelb',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.28,cy:h*0.5,rx:w*0.34,ry:h*0.55,color:'#FBC02D',op:.5,seed:21,scale:70},{cx:w*0.18,cy:h*0.7,rx:w*0.2,ry:h*0.26,color:'#FFF176',op:.5,seed:31,scale:52}]) },
+  { id:'wc-coral',  name:'Aquarell Koralle',render:(w,h)=>wcBlobs(w,h,[{cx:w*0.7,cy:h*0.45,rx:w*0.34,ry:h*0.52,color:'#FF7043',op:.5,seed:22,scale:70},{cx:w*0.82,cy:h*0.28,rx:w*0.2,ry:h*0.26,color:'#FFAB91',op:.45,seed:33,scale:52}]) },
+  { id:'wc-lavender',name:'Aquarell Flieder',render:(w,h)=>wcBlobs(w,h,[{cx:w*0.3,cy:h*0.28,rx:w*0.4,ry:h*0.36,color:'#9575CD',op:.42,seed:23,scale:66},{cx:w*0.5,cy:h*0.2,rx:w*0.26,ry:h*0.24,color:'#D1C4E9',op:.5,seed:35,scale:48}]) },
+  { id:'wc-mint',   name:'Aquarell Mint',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.72,cy:h*0.55,rx:w*0.34,ry:h*0.55,color:'#26C6DA',op:.45,seed:24,scale:70},{cx:w*0.64,cy:h*0.75,rx:w*0.2,ry:h*0.24,color:'#B2EBF2',op:.5,seed:37,scale:50}]) },
+  { id:'wc-navy',   name:'Aquarell Nachtblau',render:(w,h)=>wcBlobs(w,h,[{cx:w*0.5,cy:h*0.8,rx:w*0.44,ry:h*0.4,color:'#283593',op:.42,seed:25,scale:64},{cx:w*0.4,cy:h*0.72,rx:w*0.26,ry:h*0.24,color:'#5C6BC0',op:.4,seed:39,scale:48}]) },
+  { id:'wc-rainbow',name:'Aquarell Regenbogen',render:(w,h)=>wcBlobs(w,h,[{cx:w*0.2,cy:h*0.4,rx:w*0.24,ry:h*0.4,color:'#EF5350',op:.42,seed:41,scale:60},{cx:w*0.5,cy:h*0.35,rx:w*0.24,ry:h*0.4,color:'#FFA726',op:.4,seed:42,scale:60},{cx:w*0.8,cy:h*0.4,rx:w*0.24,ry:h*0.4,color:'#42A5F5',op:.42,seed:43,scale:60}]) },
+  { id:'grad-ocean',  name:'Ozean',    render:(w,h)=>`<defs><linearGradient id='go' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#00B4DB'/><stop offset='1' stop-color='#0083B0'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#go)'/>` },
+  { id:'grad-peach',  name:'Pfirsich', render:(w,h)=>`<defs><linearGradient id='gpe' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#FFECD2'/><stop offset='1' stop-color='#FCB69F'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gpe)'/>` },
+  { id:'grad-berry',  name:'Beere',    render:(w,h)=>`<defs><linearGradient id='gb' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#C471ED'/><stop offset='1' stop-color='#F64F59'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gb)'/>` },
+  { id:'grad-lime',   name:'Frühling', render:(w,h)=>`<defs><linearGradient id='gl' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#A8E063'/><stop offset='1' stop-color='#F1F8E9'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gl)'/>` },
+  { id:'grad-rose',   name:'Roségold', render:(w,h)=>`<defs><linearGradient id='gr' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#F8CDDA'/><stop offset='1' stop-color='#E8A87C'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gr)'/>` },
+  { id:'grad-graphite',name:'Grau',    render:(w,h)=>`<defs><linearGradient id='gg' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#E0E0E0'/><stop offset='1' stop-color='#BdBdBd'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gg)'/>` },
+  { id:'marble', name:'Marmor',        base:'#f3f0ea', render:(w,h)=>marbleBg(w,h) },
+  { id:'terrazzo',name:'Terrazzo',     base:'#FAF6F0', render:(w,h)=>terrazzoBg(w,h) },
+  { id:'bokeh',  name:'Bokeh',          base:'#DCEEF9', render:(w,h)=>bokehBg(w,h) },
+  { id:'bokeh-warm',name:'Bokeh Gold',  base:'#5D4037', render:(w,h)=>bokehWarm(w,h) },
+  { id:'streu',  name:'Streublümchen',  base:'#FBF7F0', render:(w,h)=>streuBg(w,h) },
+  { id:'stripes-pink',name:'Streifen Rosa', base:'#FFF5F7', render:(w,h)=>stripesVertical(w,h,'#F8BBD0') },
+  { id:'stripes-blue',name:'Streifen Blau', base:'#F1F8FE', render:(w,h)=>stripesVertical(w,h,'#B3E5FC') },
+  { id:'mint',   name:'Mint & Streifen', base:'#ffffff', render:(w,h)=>`<rect width='${Math.round(w*0.42)}' height='${h}' fill='#C8E6C9'/>`+stripesHalf(w,h,'#A5D6A7') }
+];
+
+/* ================= VERWALTUNG: Hintergründe / Farben / Rahmen / Vorlagen ================= */
+const BUILTIN_BG = {};
+BACKGROUNDS.forEach(def=> BUILTIN_BG[def.id] = def);
+function gradientSVG(w,h,c1,c2,dir){
+  const co = dir==='h' ? "x1='0' y1='0' x2='1' y2='0'" : dir==='diag' ? "x1='0' y1='0' x2='1' y2='1'" : "x1='0' y1='0' x2='0' y2='1'";
+  return `<defs><linearGradient id='gx' ${co}><stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2||'#ffffff'}'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gx)'/>`;
+}
+/* Vorschau-URI für ein Hintergrund-Doc */
+function bgDocPreview(d,w,h){
+  if(d.type==='image' && d.image) return d.image;
+  if(d.type==='color' && d.color) return bgURI({base:d.color, render:()=>''}, w, h);
+  if(d.type==='gradient' && d.color) return bgURI({base:d.color, render:(W,H)=>gradientSVG(W,H,d.color,d.color2,d.dir)}, w, h);
+  const b = BUILTIN_BG[d.builtinId];
+  return b ? bgURI(b,w,h) : '';
+}
+
+/* Defaults zum Seeding – identisch zur Kundenseite (index.html) */
+const DEFAULT_BG_COLORS = ['#ffffff','#000000','#95C11F','#7BA017','#1f2933','#f4f5f7','#FFD166','#EF476F','#118AB2','#06D6A0','#FF9F1C','#9B5DE5','#F15BB5','#00BBF9','#FEE440','#8AC926','#E63946','#457B9D','#2A9D8F','#E9C46A'];
+const DEFAULT_FRAME_COLORS = [{name:'Weiß',color:'#ffffff'},{name:'Schwarz',color:'#1f2933'},{name:'Gold',color:'#D4AF37'},{name:'Grün',color:'#95C11F'}];
+const DEFAULT_TEMPLATES = [
+  { name:'Geburtstag',  emoji:'🎂', bg:'#FFF3D6', htext:'Alles Gute\nzum Geburtstag!', hfont:'Pacifico', hfill:'#EF476F', hsize:44, stickers:['🎉','🎂','🎈'] },
+  { name:'Weihnachten', emoji:'🎄', bg:'#E7F1E7', htext:'Frohe\nWeihnachten', hfont:'Pacifico', hfill:'#E63946', hsize:46, stickers:['🎄','❄️','🎁'] },
+  { name:'Liebe',       emoji:'❤️', bg:'#FDE7EF', htext:'Ich liebe\ndich ♥', hfont:'Pacifico', hfill:'#E63946', hsize:46, stickers:['❤️','🌹','😍'] },
+  { name:'Dankeschön',  emoji:'🌸', bg:'#EAF6EE', htext:'Dankeschön!', hfont:'Pacifico', hfill:'#2A9D8F', hsize:48, stickers:['🌸','🍀','✨'] },
+  { name:'Leer starten', emoji:'⬜', bg:'#ffffff', htext:'', hfont:'Pacifico', hfill:'#333333', hsize:44, stickers:[] }
+];
+
+let unsubB = [];
+let bgs=[], hgfs=[], rfs=[], tmpls=[];
+const byOrder=(a,b)=>(a.reihenfolge||0)-(b.reihenfolge||0);
+function listenBackends(){
+  unsubB.forEach(u=>u&&u()); unsubB=[];
+  unsubB.push(onSnapshot(collection(db,'tassen_hintergruende'), s=>{ bgs=s.docs.map(d=>({id:d.id,...d.data()})); bgs.sort(byOrder); renderBgAdmin(); }, e=>{ $('bg-list').innerHTML='<div class="empty">Fehler: '+e.message+'</div>'; }));
+  unsubB.push(onSnapshot(collection(db,'tassen_hgfarben'), s=>{ hgfs=s.docs.map(d=>({id:d.id,...d.data()})); hgfs.sort(byOrder); renderHgf(); }));
+  unsubB.push(onSnapshot(collection(db,'tassen_rahmenfarben'), s=>{ rfs=s.docs.map(d=>({id:d.id,...d.data()})); rfs.sort(byOrder); renderRf(); }));
+  unsubB.push(onSnapshot(collection(db,'tassen_vorlagen'), s=>{ tmpls=s.docs.map(d=>({id:d.id,...d.data()})); tmpls.sort(byOrder); renderTmplAdmin(); }));
+}
+
+/* generische Verdrahtung: sichtbar-Haken, Reihenfolge, Löschen, Bearbeiten */
+function wireAdmin(listId, coll, onEdit, items){
+  const el=$(listId);
+  el.querySelectorAll('[data-akt]').forEach(c=> c.onchange=()=>updateDoc(doc(db,coll,c.dataset.akt),{aktiv:c.checked}));
+  el.querySelectorAll('[data-ord]').forEach(n=> n.onchange=()=>updateDoc(doc(db,coll,n.dataset.ord),{reihenfolge:parseInt(n.value,10)||0}));
+  el.querySelectorAll('[data-del]').forEach(b=> b.onclick=()=>{ if(confirm('Wirklich löschen?')) deleteDoc(doc(db,coll,b.dataset.del)); });
+  if(onEdit) el.querySelectorAll('[data-edit]').forEach(b=> b.onclick=()=>onEdit(items.find(x=>x.id===b.dataset.edit)));
+}
+
+/* ---- Hintergründe ---- */
+function renderBgAdmin(){
+  if(!bgs.length){ $('bg-list').innerHTML='<div class="empty">Noch keine Hintergründe. Klicke „⬇️ Standard-Designs laden", um die eingebauten Motive zu übernehmen – danach kannst du sie sortieren, ausblenden oder löschen und eigene ergänzen.</div>'; return; }
+  $('bg-list').innerHTML = bgs.map(d=>{
+    const tl={builtin:'Design',image:'Bild',color:'Farbe',gradient:'Verlauf'}[d.type]||'Design';
+    return `<div class="admin-card">
+      <div class="prev"></div>
+      <div class="body"><div class="nm">${d.name||'—'}</div><div class="meta">${tl}</div></div>
+      <div class="row">
+        <label class="aktiv-toggle"><input type="checkbox" data-akt="${d.id}" ${d.aktiv!==false?'checked':''}> sichtbar</label>
+        <input type="number" data-ord="${d.id}" value="${d.reihenfolge||0}" title="Reihenfolge">
+        <button class="icon-btn" data-edit="${d.id}" style="margin-left:auto" title="Bearbeiten">✏️</button>
+        <button class="icon-btn del" data-del="${d.id}" title="Löschen">🗑️</button>
+      </div></div>`;
+  }).join('');
+  $('bg-list').querySelectorAll('.prev').forEach((el,i)=>{ el.style.backgroundImage='url("'+bgDocPreview(bgs[i],240,140)+'")'; });
+  wireAdmin('bg-list','tassen_hintergruende', openBgModal, bgs);
+}
+
+/* ---- Hintergrundfarben ---- */
+function renderHgf(){
+  $('hgf-list').innerHTML = hgfs.length
+    ? hgfs.map(d=>`<div class="color-chip" style="background:${d.color}"><span class="x" data-del="${d.id}">✕</span><span class="lb">${d.color}</span></div>`).join('')
+    : '<div class="empty">Keine Farben. „⬇️ Standard laden" oder rechts eine Farbe hinzufügen.</div>';
+  $('hgf-list').querySelectorAll('[data-del]').forEach(b=> b.onclick=()=>deleteDoc(doc(db,'tassen_hgfarben',b.dataset.del)));
+}
+/* ---- Rahmenfarben ---- */
+function renderRf(){
+  $('rf-list').innerHTML = rfs.length
+    ? rfs.map(d=>`<div class="color-chip" style="background:${d.color}"><span class="x" data-del="${d.id}">✕</span><span class="lb">${d.name||d.color}</span></div>`).join('')
+    : '<div class="empty">Keine Rahmenfarben.</div>';
+  $('rf-list').querySelectorAll('[data-del]').forEach(b=> b.onclick=()=>deleteDoc(doc(db,'tassen_rahmenfarben',b.dataset.del)));
+}
+const nextOrder=(arr)=> (arr.length?Math.max(...arr.map(x=>x.reihenfolge||0)):0)+1;
+$('btn-add-hgf').onclick=()=> addDoc(collection(db,'tassen_hgfarben'),{color:$('hgf-new').value, reihenfolge:nextOrder(hgfs)});
+$('btn-add-rf').onclick=()=>{ addDoc(collection(db,'tassen_rahmenfarben'),{name:$('rf-new-name').value.trim()||$('rf-new').value, color:$('rf-new').value, reihenfolge:nextOrder(rfs)}); $('rf-new-name').value=''; };
+
+/* ---- Vorlagen ---- */
+function renderTmplAdmin(){
+  if(!tmpls.length){ $('tmpl-admin-list').innerHTML='<div class="empty">Noch keine Vorlagen. „⬇️ Standard laden" oder eine neue anlegen.</div>'; return; }
+  $('tmpl-admin-list').innerHTML = tmpls.map(d=>{
+    const stk=(Array.isArray(d.stickers)?d.stickers.join(' '):(d.stickers||''));
+    return `<div class="admin-card">
+      <div class="prev" style="background:${d.bg||'#fff'};display:flex;align-items:center;justify-content:center;text-align:center;font-family:${d.hfont||'Arial'};color:${d.hfill||'#333'};font-size:15px;padding:8px;line-height:1.2">${(d.htext||'').replace(/</g,'&lt;').replace(/\n/g,'<br>')||'&nbsp;'}</div>
+      <div class="body"><div class="nm">${d.emoji||''} ${d.name||'—'}</div><div class="meta">${stk}</div></div>
+      <div class="row">
+        <label class="aktiv-toggle"><input type="checkbox" data-akt="${d.id}" ${d.aktiv!==false?'checked':''}> sichtbar</label>
+        <input type="number" data-ord="${d.id}" value="${d.reihenfolge||0}" title="Reihenfolge">
+        <button class="icon-btn" data-edit="${d.id}" style="margin-left:auto">✏️</button>
+        <button class="icon-btn del" data-del="${d.id}">🗑️</button>
+      </div></div>`;
+  }).join('');
+  wireAdmin('tmpl-admin-list','tassen_vorlagen', openTmplModal, tmpls);
+}
+
+/* ---- Seeding ---- */
+async function seed(coll, arr, existing){
+  if(existing.length && !confirm('Es sind schon Einträge vorhanden. Die Standard-Einträge trotzdem zusätzlich anlegen?')) return;
+  try{ for(const o of arr){ await addDoc(collection(db,coll), o); } alert('Standard-Einträge wurden angelegt.'); }
+  catch(e){ alert('Fehler beim Anlegen: '+e.message); }
+}
+$('btn-seed-bg').onclick=()=> seed('tassen_hintergruende', BACKGROUNDS.map((def,i)=>({name:def.name, type:'builtin', builtinId:def.id, base:def.base||'', reihenfolge:i+1, aktiv:true})), bgs);
+$('btn-seed-hgf').onclick=()=> seed('tassen_hgfarben', DEFAULT_BG_COLORS.map((c,i)=>({color:c, reihenfolge:i+1})), hgfs);
+$('btn-seed-rf').onclick=()=> seed('tassen_rahmenfarben', DEFAULT_FRAME_COLORS.map((c,i)=>({name:c.name, color:c.color, reihenfolge:i+1})), rfs);
+$('btn-seed-tmpl').onclick=()=> seed('tassen_vorlagen', DEFAULT_TEMPLATES.map((t,i)=>({name:t.name, emoji:t.emoji, bg:t.bg, htext:t.htext, hfont:t.hfont, hfill:t.hfill, hsize:t.hsize, stickers:t.stickers, reihenfolge:i+1, aktiv:true})), tmpls);
+
+/* ---- Hintergrund-Modal ---- */
+let bgEditId=null, bgImageData=null;
+function bgTypeFields(){
+  const t=$('bg-type').value;
+  $('bg-f-image').style.display = t==='image'?'block':'none';
+  $('bg-f-color').style.display = (t==='color'||t==='gradient')?'block':'none';
+  $('bg-f-color2').style.display = t==='gradient'?'block':'none';
+  $('bg-f-dir').style.display = t==='gradient'?'block':'none';
+}
+$('bg-type').onchange=bgTypeFields;
+$('bg-image').onchange=(e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{ const im=new Image(); im.onload=()=>{ const sc=Math.min(1,1400/im.width); const c=document.createElement('canvas'); c.width=Math.round(im.width*sc); c.height=Math.round(im.height*sc); c.getContext('2d').drawImage(im,0,0,c.width,c.height); bgImageData=c.toDataURL('image/jpeg',0.82); $('bg-image-prev').textContent='Bild geladen ('+Math.round(bgImageData.length/1024)+' KB)'; }; im.src=ev.target.result; };
+  r.readAsDataURL(f);
+};
+function openBgModal(d){
+  bgEditId = d?d.id:null; bgImageData = (d&&d.image)||null;
+  $('bg-modal-title').textContent = d?'Hintergrund bearbeiten':'Eigener Hintergrund';
+  $('bg-name').value = (d&&d.name)||'';
+  const isBuiltin = d && d.type==='builtin';
+  $('bg-f-type').style.display = isBuiltin?'none':'block';
+  $('bg-type').value = (d&&d.type&&d.type!=='builtin')?d.type:'image';
+  $('bg-color').value = (d&&d.color)||'#95C11F';
+  $('bg-color2').value = (d&&d.color2)||'#ffffff';
+  $('bg-dir').value = (d&&d.dir)||'v';
+  $('bg-order').value = (d&&d.reihenfolge)||nextOrder(bgs);
+  $('bg-aktiv').checked = d? d.aktiv!==false : true;
+  $('bg-image-prev').textContent = (d&&d.image)?'Bild vorhanden (neues wählen zum Ersetzen)':'';
+  bgTypeFields();
+  if(isBuiltin){ $('bg-f-image').style.display='none'; $('bg-f-color').style.display='none'; $('bg-f-color2').style.display='none'; $('bg-f-dir').style.display='none'; }
+  $('bg-modal').classList.add('show');
+}
+$('btn-new-bg').onclick=()=>openBgModal(null);
+$('bg-cancel').onclick=()=>$('bg-modal').classList.remove('show');
+$('bg-modal').onclick=(e)=>{ if(e.target.id==='bg-modal') $('bg-modal').classList.remove('show'); };
+$('bg-save').onclick=async ()=>{
+  const editing = bgs.find(x=>x.id===bgEditId);
+  const name=$('bg-name').value.trim()||'Hintergrund';
+  let obj;
+  if(editing && editing.type==='builtin'){
+    obj={ name, reihenfolge:parseInt($('bg-order').value,10)||0, aktiv:$('bg-aktiv').checked };
+  }else{
+    const type=$('bg-type').value;
+    obj={ name, type, reihenfolge:parseInt($('bg-order').value,10)||0, aktiv:$('bg-aktiv').checked };
+    if(type==='image'){ if(!bgImageData){ alert('Bitte ein Bild wählen.'); return; } obj.image=bgImageData; }
+    else if(type==='color'){ obj.color=$('bg-color').value; }
+    else if(type==='gradient'){ obj.color=$('bg-color').value; obj.color2=$('bg-color2').value; obj.dir=$('bg-dir').value; }
+  }
+  const btn=$('bg-save'); btn.disabled=true; btn.textContent='Speichern …';
+  try{
+    if(bgEditId) await updateDoc(doc(db,'tassen_hintergruende',bgEditId), obj);
+    else await addDoc(collection(db,'tassen_hintergruende'), obj);
+    $('bg-modal').classList.remove('show');
+  }catch(e){ alert('Fehler beim Speichern: '+e.message); }
+  finally{ btn.disabled=false; btn.textContent='Speichern'; }
+};
+
+/* ---- Vorlage-Modal ---- */
+let tmplEditId=null;
+function openTmplModal(d){
+  tmplEditId = d?d.id:null;
+  $('tmpl-modal-title').textContent = d?'Vorlage bearbeiten':'Neue Vorlage';
+  $('t-name').value=(d&&d.name)||''; $('t-emoji').value=(d&&d.emoji)||'';
+  $('t-bg').value=(d&&d.bg)||'#ffffff'; $('t-text').value=(d&&d.htext)||'';
+  $('t-font').value=(d&&d.hfont)||'Pacifico'; $('t-fill').value=(d&&d.hfill)||'#EF476F';
+  $('t-size').value=(d&&d.hsize)||44; $('t-order').value=(d&&d.reihenfolge)||nextOrder(tmpls);
+  $('t-stickers').value=Array.isArray(d&&d.stickers)?d.stickers.join(' '):((d&&d.stickers)||'');
+  $('t-aktiv').checked = d? d.aktiv!==false : true;
+  $('tmpl-modal').classList.add('show');
+}
+$('btn-new-tmpl').onclick=()=>openTmplModal(null);
+$('t-cancel').onclick=()=>$('tmpl-modal').classList.remove('show');
+$('tmpl-modal').onclick=(e)=>{ if(e.target.id==='tmpl-modal') $('tmpl-modal').classList.remove('show'); };
+$('t-save').onclick=async ()=>{
+  const name=$('t-name').value.trim(); if(!name){ alert('Bitte einen Namen eingeben.'); return; }
+  const obj={ name, emoji:$('t-emoji').value.trim()||'✨', bg:$('t-bg').value, htext:$('t-text').value,
+    hfont:$('t-font').value, hfill:$('t-fill').value, hsize:parseInt($('t-size').value,10)||44,
+    stickers:$('t-stickers').value.split(/[\s,]+/).filter(Boolean),
+    reihenfolge:parseInt($('t-order').value,10)||0, aktiv:$('t-aktiv').checked };
+  const btn=$('t-save'); btn.disabled=true; btn.textContent='Speichern …';
+  try{
+    if(tmplEditId) await updateDoc(doc(db,'tassen_vorlagen',tmplEditId), obj);
+    else await addDoc(collection(db,'tassen_vorlagen'), obj);
+    $('tmpl-modal').classList.remove('show');
+  }catch(e){ alert('Fehler beim Speichern: '+e.message); }
+  finally{ btn.disabled=false; btn.textContent='Speichern'; }
+};
+
+
 </script>
 </body>
 </html>

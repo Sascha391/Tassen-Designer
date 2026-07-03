@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Foto Riede – Produkt gestalten</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2395C11F'/%3E%3Ctext x='50' y='72' font-family='Arial' font-size='64' font-weight='bold' font-style='italic' fill='white' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:ital,wght@0,400;0,600;0,700;1,600&family=Montserrat:ital,wght@0,400;0,600;0,700;1,600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <style>
   :root{
@@ -19,6 +19,7 @@
     --schatten:0 6px 20px rgba(0,0,0,.08);
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  html{overflow-y:scroll}      /* Scrollleiste immer reservieren -> Fläche verschiebt sich nie seitlich */
   body{font-family:Arial,Helvetica,sans-serif;background:var(--grau);color:var(--text);line-height:1.5}
   header{background:#fff;border-bottom:1px solid var(--grau2);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
   header .brand-icon{width:40px;height:40px;border-radius:50%;background:var(--gruen);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-style:italic;font-size:1.4rem;flex-shrink:0}
@@ -27,7 +28,7 @@
   header .logo small{display:block;font-weight:400;font-size:.7rem;color:#7b8794;letter-spacing:0}
   header .claim{color:#7b8794;font-size:.85rem;margin-left:auto}
 
-  .wrap{max-width:1200px;margin:0 auto;padding:22px 16px 60px}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 16px 60px}
 
   /* Produktauswahl */
   .products{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
@@ -58,10 +59,90 @@
   .btn-light{background:var(--grau);color:var(--text)}
   .btn-light:hover{background:var(--grau2)}
   .btn:disabled{opacity:.5;cursor:not-allowed}
+  .tb-sep{width:1px;align-self:stretch;background:var(--grau2);margin:0 2px}
 
-  .canvas-stage{background:repeating-conic-gradient(#f0f0f0 0% 25%, #fafafa 0% 50%) 50%/22px 22px;border:1px solid var(--grau2);border-radius:12px;padding:12px;display:flex;justify-content:center}
+  /* Formen/Sticker-Dropdown */
+  .dropdown{position:relative}
+  .dropdown-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:15;background:#fff;border:1px solid var(--grau2);border-radius:12px;box-shadow:var(--schatten);padding:10px;display:none;grid-template-columns:repeat(4,40px);gap:6px}
+  .dropdown.open .dropdown-menu{display:grid}
+  .dropdown-menu button{width:40px;height:40px;border:1px solid var(--grau2);background:#fff;border-radius:9px;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+  .dropdown-menu button:hover{border-color:var(--gruen);background:var(--grau)}
+  .dropdown-menu .shape-ico{width:20px;height:20px;background:var(--dunkel)}
+  .dropdown-menu .shape-rect{border-radius:3px}
+  .dropdown-menu .shape-circle{border-radius:50%}
+  .dropdown-menu .shape-tri{width:0;height:0;background:none;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:19px solid var(--dunkel)}
+  .dropdown-menu .shape-line{width:22px;height:4px;border-radius:2px}
+
+  /* Kontext-Leiste – IMMER sichtbar (fester Platz), nur ausgegraut wenn nichts gewählt ist */
+  .obj-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px;padding:8px 10px;background:var(--grau);border-radius:11px;min-height:52px}
+  .obj-bar.disabled{opacity:.5;pointer-events:none;filter:grayscale(.35)}
+  .obj-bar button{border:1px solid var(--grau2);background:#fff;border-radius:8px;padding:6px 9px;font-family:inherit;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+  .obj-bar button:hover{border-color:var(--gruen)}
+  .obj-bar button.on{background:var(--gruen);color:#fff;border-color:var(--gruen)}
+  .obj-bar .text-only{display:none;align-items:center;gap:6px}
+  .obj-bar.is-text .text-only{display:inline-flex}
+  .obj-bar .obj-sep{width:1px;align-self:stretch;background:var(--grau2);margin:0 2px}
+  .obj-bar .size-ctrl{display:flex;align-items:center;gap:6px;font-size:.78rem;color:#616e7c}
+  .obj-bar input[type=range]{width:90px;accent-color:var(--gruen)}
+
+  /* ===== CEWE-artiges Editor-Layout: Rail + Panel + Arbeitsfläche ===== */
+  .editor-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .editor-head h2{margin:0}
+  .editor-head .head-actions{margin-left:auto;display:flex;gap:6px}
+  .editor-layout{display:flex;border:1px solid var(--grau2);border-radius:12px;overflow:hidden;min-height:420px}
+  .cat-rail{display:flex;flex-direction:column;background:var(--grau);border-right:1px solid var(--grau2);flex-shrink:0}
+  .cat-rail button{border:none;background:none;padding:11px 6px;width:66px;cursor:pointer;font-size:1.25rem;color:#616e7c;border-left:3px solid transparent;display:flex;flex-direction:column;align-items:center;gap:3px;transition:.12s}
+  .cat-rail button small{font-size:.58rem;font-weight:700;letter-spacing:.2px}
+  .cat-rail button:hover{background:#eef0f2;color:var(--dunkel)}
+  .cat-rail button.active{background:#fff;color:var(--gruen);border-left-color:var(--gruen)}
+  .cat-panel{width:212px;flex-shrink:0;background:#fff;border-right:1px solid var(--grau2);padding:14px;overflow-y:auto;max-height:600px}
+  .cat-panel .panel{display:none}
+  .cat-panel .panel.active{display:block}
+  .panel h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;color:#9aa5b1;margin-bottom:9px}
+  .panel-hint{font-size:.74rem;color:#7b8794;margin-top:10px;line-height:1.4}
+  .panel .field{display:block;font-size:.76rem;color:#616e7c;font-weight:600;margin:12px 0 5px}
+  .full-btn{width:100%;justify-content:center}
+  .panel select,.panel input[type=color]{width:100%}
+  .panel input[type=color]{height:36px}
+  .panel input[type=range]{width:100%;accent-color:var(--gruen)}
+  .swatch-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .swatch{aspect-ratio:1;border-radius:7px;border:1px solid rgba(0,0,0,.12);cursor:pointer;transition:.1s;padding:0}
+  .swatch:hover{transform:scale(1.1);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+  .panel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .panel-grid button{aspect-ratio:1;border:1px solid var(--grau2);background:#fff;border-radius:9px;font-size:1.25rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;color:var(--dunkel)}
+  .panel-grid button:hover{border-color:var(--gruen);background:var(--grau)}
+  .panel-grid button.on{border-color:var(--gruen);background:var(--gruen);color:#fff}
+  .pattern-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .pat-swatch{aspect-ratio:1;border:1px solid var(--grau2);border-radius:9px;cursor:pointer;background-repeat:repeat;background-position:center;padding:0;overflow:hidden;transition:.1s}
+  .pat-swatch:hover{border-color:var(--gruen)}
+  .pat-swatch.on{border-color:var(--gruen);box-shadow:0 0 0 2px rgba(149,193,31,.35)}
+  .tmpl-list{display:flex;flex-direction:column;gap:8px}
+  .tmpl-list button{text-align:left;border:1px solid var(--grau2);background:#fff;border-radius:10px;padding:11px 12px;font-family:inherit;font-size:.9rem;font-weight:600;color:var(--dunkel);cursor:pointer;display:flex;align-items:center;gap:8px}
+  .tmpl-list button:hover{border-color:var(--gruen);background:var(--grau)}
+  .editor-main{flex:1;min-width:0;padding:14px;display:flex;flex-direction:column;justify-content:flex-start}
+  .shape-ico{width:20px;height:20px;background:var(--dunkel);display:inline-block}
+  .shape-rect{border-radius:3px}
+  .shape-circle{border-radius:50%}
+  .shape-tri{width:0;height:0;background:none;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:19px solid var(--dunkel)}
+  .shape-line{width:22px;height:4px;border-radius:2px}
+  @media(max-width:640px){
+    .editor-layout{flex-direction:column}
+    .cat-rail{flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--grau2)}
+    .cat-rail button{border-left:none;border-bottom:3px solid transparent;width:auto;min-width:60px;flex:1}
+    .cat-rail button.active{border-left:none;border-bottom-color:var(--gruen)}
+    .cat-panel{width:auto;border-right:none;border-bottom:1px solid var(--grau2);max-height:none}
+  }
+
+  .canvas-stage{background:repeating-conic-gradient(#f0f0f0 0% 25%, #fafafa 0% 50%) 50%/22px 22px;border:1px solid var(--grau2);border-radius:12px;padding:12px;display:flex;justify-content:center;transition:outline .1s, background .1s}
+  .canvas-stage.dragover{outline:3px dashed var(--gruen);outline-offset:-6px;background:#eef6da}
   .design-frame{position:absolute;border:2px dashed var(--gruen);border-radius:3px;pointer-events:none;box-sizing:border-box}
   .design-frame::after{content:'Design-Bereich';position:absolute;top:-9px;left:8px;background:#fff;color:var(--gruen);font-size:.62rem;font-weight:700;padding:0 5px}
+  /* Hilfslinien beim Ausrichten (Mitte) */
+  .snap-line{position:absolute;background:#EF476F;pointer-events:none;z-index:6;display:none;box-shadow:0 0 3px rgba(239,71,111,.6)}
+  .snap-line.v{width:2px;top:0;bottom:0}
+  .snap-line.h{height:2px;left:0;right:0}
+  /* Touch: kein Seiten-Scrollen beim Ziehen auf der Fläche */
+  .canvas-container canvas{touch-action:none}
   .hint{font-size:.78rem;color:#7b8794;margin-top:8px;text-align:center}
 
   .sub-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--grau2)}
@@ -87,6 +168,11 @@
   .qty input{width:60px;text-align:center}
   .submit-btn{width:100%;background:var(--gruen);color:#fff;border:none;border-radius:11px;padding:14px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:6px}
   .submit-btn:hover{background:var(--gruen-dark)}
+  .step-actions{display:flex;justify-content:flex-end;margin-top:18px}
+  .next-btn{width:auto;min-width:260px;padding-left:26px;padding-right:26px}
+  .order-card{max-width:560px;margin:0 auto}
+  .order-hint{color:#7b8794;font-size:.88rem;margin-bottom:16px}
+  @media(max-width:560px){.next-btn{width:100%}}
 
   /* Erfolgs-Overlay */
   .overlay{position:fixed;inset:0;background:rgba(31,41,51,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
@@ -105,6 +191,8 @@
 </header>
 
 <div class="wrap">
+  <!-- ================= SCHRITT 1: PRODUKT GESTALTEN ================= -->
+  <div id="step-design">
   <!-- PRODUKTAUSWAHL (wird aus dem Backend geladen) -->
   <div class="products" id="products"></div>
   <div class="size-bar" id="size-bar">
@@ -114,83 +202,191 @@
     <span class="price-display" id="price-display"></span>
   </div>
 
-  <div class="grid">
-    <!-- EDITOR -->
+    <!-- EDITOR (volle Breite) -->
     <div class="card">
-      <h2>🎨 <span id="editor-title">Tasse gestalten</span></h2>
-      <div class="toolbar">
-        <button class="btn btn-primary" id="btn-upload">📷 Foto hochladen</button>
-        <input type="file" id="file-input" accept="image/*" hidden />
-        <button class="btn btn-light" id="btn-text">✍️ Text hinzufügen</button>
-        <button class="btn btn-light" id="btn-delete">🗑️ Auswahl löschen</button>
-        <button class="btn btn-light" id="btn-clear">↺ Alles zurücksetzen</button>
+      <div class="editor-head">
+        <h2>🎨 <span id="editor-title">Tasse gestalten</span></h2>
+        <div class="head-actions">
+          <button class="btn btn-light" id="btn-undo" title="Rückgängig" disabled>↶</button>
+          <button class="btn btn-light" id="btn-redo" title="Wiederholen" disabled>↷</button>
+          <button class="btn btn-light" id="btn-clear">↺ Zurücksetzen</button>
+        </div>
       </div>
 
-      <div class="canvas-stage">
-        <canvas id="c" width="760" height="320"></canvas>
-      </div>
-      <p class="hint">Gestalte innerhalb des gestrichelten <b>Design-Rahmens</b> – dieser Bereich wird auf die Tasse gedruckt. Foto & Text frei verschieben, an den Ecken skalieren.</p>
+      <div class="editor-layout">
+        <!-- Kategorie-Rail -->
+        <div class="cat-rail" id="cat-rail">
+          <button data-cat="fotos" class="active" title="Fotos">🖼️<small>Fotos</small></button>
+          <button data-cat="hintergrund" title="Hintergrund">🎨<small>Hinter&shy;grund</small></button>
+          <button data-cat="cliparts" title="Cliparts">⬡<small>Cliparts</small></button>
+          <button data-cat="rahmen" title="Rahmen &amp; Masken">🔲<small>Rahmen</small></button>
+          <button data-cat="text" title="Text">✍️<small>Text</small></button>
+          <button data-cat="vorlagen" title="Vorlagen">✨<small>Vorlagen</small></button>
+        </div>
 
-      <div class="sub-controls">
-        <label>Tassenfarbe
-          <input type="color" id="bg-color" value="#ffffff" />
-        </label>
-        <label>Schriftart
-          <select id="font-family">
-            <option value="Poppins">Poppins</option>
-            <option value="Montserrat">Montserrat</option>
-            <option value="Pacifico">Pacifico (Handschrift)</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Arial">Arial</option>
-          </select>
-        </label>
-        <label>Textfarbe
-          <input type="color" id="text-color" value="#95C11F" />
-        </label>
+        <!-- Panel-Inhalte -->
+        <div class="cat-panel">
+          <!-- Fotos -->
+          <div class="panel active" data-panel="fotos">
+            <h3>Foto</h3>
+            <button class="btn btn-primary full-btn" id="btn-upload">📷 Foto hochladen</button>
+            <input type="file" id="file-input" accept="image/*" hidden />
+            <p class="panel-hint">Foto hochladen – oder einfach per <b>Drag &amp; Drop</b> in die Fläche ziehen. Dann verschieben und an den Ecken skalieren. Runde/Herz-Formen findest du unter <b>Rahmen</b>.</p>
+          </div>
+
+          <!-- Hintergrund -->
+          <div class="panel" data-panel="hintergrund">
+            <h3>Design-Hintergründe</h3>
+            <div class="pattern-grid" id="bg-designs"></div>
+            <button class="btn btn-light full-btn" id="btn-bg-none" style="margin-top:8px">✕ Kein Hintergrundbild</button>
+            <h3 style="margin-top:16px">Hintergrundfarbe</h3>
+            <div class="swatch-grid" id="bg-swatches"></div>
+            <label class="field">Eigene Farbe</label>
+            <input type="color" id="bg-color" value="#ffffff" />
+            <h3 style="margin-top:16px">Muster</h3>
+            <label class="field">Musterfarbe</label>
+            <input type="color" id="pattern-color" value="#95C11F" />
+            <div class="pattern-grid" id="pattern-grid"></div>
+            <button class="btn btn-light full-btn" id="btn-pattern-none" style="margin-top:8px">✕ Kein Muster</button>
+          </div>
+
+          <!-- Cliparts -->
+          <div class="panel" data-panel="cliparts">
+            <h3>Sticker</h3>
+            <div class="panel-grid" id="sticker-grid">
+              <button data-sticker="❤️">❤️</button><button data-sticker="⭐">⭐</button>
+              <button data-sticker="🎉">🎉</button><button data-sticker="🌸">🌸</button>
+              <button data-sticker="☕">☕</button><button data-sticker="🐾">🐾</button>
+              <button data-sticker="😍">😍</button><button data-sticker="🎂">🎂</button>
+              <button data-sticker="🎈">🎈</button><button data-sticker="🎁">🎁</button>
+              <button data-sticker="🌟">🌟</button><button data-sticker="✨">✨</button>
+              <button data-sticker="🍀">🍀</button><button data-sticker="🌈">🌈</button>
+              <button data-sticker="☀️">☀️</button><button data-sticker="🐶">🐶</button>
+              <button data-sticker="🐱">🐱</button><button data-sticker="🌺">🌺</button>
+              <button data-sticker="🎄">🎄</button><button data-sticker="❄️">❄️</button>
+            </div>
+          </div>
+
+          <!-- Rahmen & Masken -->
+          <div class="panel" data-panel="rahmen">
+            <h3>Foto-Form (Maske)</h3>
+            <p class="panel-hint">Erst ein <b>Foto</b> auswählen, dann Form wählen.</p>
+            <div class="panel-grid" id="mask-grid">
+              <button data-mask="none" title="Original">▭</button>
+              <button data-mask="circle" title="Kreis">●</button>
+              <button data-mask="rounded" title="Abgerundet">▢</button>
+              <button data-mask="heart" title="Herz">❤</button>
+              <button data-mask="star" title="Stern">★</button>
+            </div>
+            <h3 style="margin-top:16px">Rahmenfarbe</h3>
+            <div class="panel-grid" id="frame-grid">
+              <button data-frame="none" title="Kein Rahmen">✕</button>
+              <button data-frame="#ffffff" title="Weiß"><span style="width:20px;height:20px;border-radius:4px;background:#fff;border:1px solid #ccc;display:inline-block"></span></button>
+              <button data-frame="#1f2933" title="Schwarz"><span style="width:20px;height:20px;border-radius:4px;background:#1f2933;display:inline-block"></span></button>
+              <button data-frame="#D4AF37" title="Gold"><span style="width:20px;height:20px;border-radius:4px;background:#D4AF37;display:inline-block"></span></button>
+              <button data-frame="#95C11F" title="Grün"><span style="width:20px;height:20px;border-radius:4px;background:#95C11F;display:inline-block"></span></button>
+            </div>
+            <label class="field">Rahmenstärke</label>
+            <input type="range" id="frame-width" min="2" max="40" value="16">
+          </div>
+
+          <!-- Text -->
+          <div class="panel" data-panel="text">
+            <h3>Text</h3>
+            <button class="btn btn-primary full-btn" id="btn-text">✍️ Text hinzufügen</button>
+            <label class="field">Schriftart</label>
+            <select id="font-family">
+              <option value="Poppins">Poppins</option>
+              <option value="Montserrat">Montserrat</option>
+              <option value="Pacifico">Pacifico (Handschrift)</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Arial">Arial</option>
+            </select>
+            <label class="field">Textfarbe</label>
+            <input type="color" id="text-color" value="#95C11F" />
+            <p class="panel-hint">Fett, Kursiv, Ausrichtung und Größe erscheinen in der Leiste über der Tasse, sobald ein Text ausgewählt ist.</p>
+          </div>
+
+          <!-- Vorlagen -->
+          <div class="panel" data-panel="vorlagen">
+            <h3>Fertige Vorlagen</h3>
+            <p class="panel-hint">Guter Startpunkt – ersetzt dein aktuelles Design.</p>
+            <div class="tmpl-list" id="tmpl-list">
+              <button data-tmpl="geburtstag">🎂 Geburtstag</button>
+              <button data-tmpl="weihnachten">🎄 Weihnachten</button>
+              <button data-tmpl="liebe">❤️ Liebe</button>
+              <button data-tmpl="danke">🌸 Dankeschön</button>
+              <button data-tmpl="leer">⬜ Leer starten</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arbeitsfläche -->
+        <div class="editor-main">
+          <!-- Kontext-Leiste: erscheint, wenn ein Objekt ausgewählt ist -->
+          <div class="obj-bar disabled" id="obj-bar">
+            <button data-act="front" title="Nach vorne">⬆️ Vorne</button>
+            <button data-act="back" title="Nach hinten">⬇️ Hinten</button>
+            <span class="obj-sep"></span>
+            <button data-act="rotate" title="90° drehen">⟳ Drehen</button>
+            <button data-act="flip" title="Horizontal spiegeln">⇄ Spiegeln</button>
+            <button data-act="dup" title="Duplizieren">⧉ Kopie</button>
+            <span class="text-only">
+              <span class="obj-sep"></span>
+              <button data-act="bold" title="Fett"><b>F</b></button>
+              <button data-act="italic" title="Kursiv"><i>K</i></button>
+              <button data-act="align" title="Ausrichtung">⬅️</button>
+              <span class="size-ctrl">A<input type="range" id="obj-size" min="12" max="160" value="48">A</span>
+            </span>
+            <span class="obj-sep"></span>
+            <button data-act="del" title="Löschen">🗑️ Löschen</button>
+          </div>
+
+          <div class="canvas-stage">
+            <canvas id="c" width="760" height="320"></canvas>
+          </div>
+          <p class="hint">Gestalte innerhalb des gestrichelten <b>Design-Rahmens</b> – dieser Bereich wird auf die Tasse gedruckt.</p>
+        </div>
       </div>
     </div>
 
-    <!-- VORSCHAU + BESTELLUNG -->
-    <div>
-      <div class="card" style="margin-bottom:22px">
-        <h2>👀 Live-Vorschau</h2>
-        <div class="preview-box">
-          <div class="mug">
-            <div class="body"><div class="design" id="preview-design"></div></div>
-            <div class="shine"></div>
-            <div class="handle"></div>
-          </div>
-        </div>
-      </div>
+    <!-- Weiter zum Bestellschritt -->
+    <div class="step-actions">
+      <button class="submit-btn next-btn" id="btn-to-order">Weiter zur Bestellung →</button>
+    </div>
+  </div><!-- /step-design -->
 
-      <div class="card">
-        <h2>🛒 Bestellung</h2>
-        <div class="form-group">
-          <label>Name *</label>
-          <input type="text" id="f-name" placeholder="Vor- und Nachname" />
-        </div>
-        <div class="form-group">
-          <label>E-Mail *</label>
-          <input type="email" id="f-email" placeholder="deine@email.de" />
-        </div>
-        <div class="form-group">
-          <label>Telefon</label>
-          <input type="tel" id="f-phone" placeholder="Optional" />
-        </div>
-        <div class="form-group">
-          <label>Menge</label>
-          <div class="qty">
-            <button type="button" id="qty-minus">−</button>
-            <input type="number" id="f-qty" value="1" min="1" />
-            <button type="button" id="qty-plus">+</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Anmerkung</label>
-          <textarea id="f-note" rows="2" placeholder="Wünsche, Abholung/Versand …"></textarea>
-        </div>
-        <button class="submit-btn" id="btn-submit">Bestellung absenden ☕</button>
+  <!-- ================= SCHRITT 2: BESTELLDATEN ================= -->
+  <div id="step-order" style="display:none">
+    <button class="btn btn-light" id="btn-back" style="margin-bottom:16px">← Zurück zum Design</button>
+    <div class="card order-card">
+      <h2>🛒 Deine Bestellung</h2>
+      <p class="order-hint">Fast geschafft! Trage noch deine Kontaktdaten ein – dann geht dein Design an Foto Riede.</p>
+      <div class="form-group">
+        <label>Name *</label>
+        <input type="text" id="f-name" placeholder="Vor- und Nachname" />
       </div>
+      <div class="form-group">
+        <label>E-Mail *</label>
+        <input type="email" id="f-email" placeholder="deine@email.de" />
+      </div>
+      <div class="form-group">
+        <label>Telefon</label>
+        <input type="tel" id="f-phone" placeholder="Optional" />
+      </div>
+      <div class="form-group">
+        <label>Menge</label>
+        <div class="qty">
+          <button type="button" id="qty-minus">−</button>
+          <input type="number" id="f-qty" value="1" min="1" />
+          <button type="button" id="qty-plus">+</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Anmerkung</label>
+        <textarea id="f-note" rows="2" placeholder="Wünsche, Abholung/Versand …"></textarea>
+      </div>
+      <button class="submit-btn" id="btn-submit">Bestellung absenden ☕</button>
     </div>
   </div>
 
@@ -240,17 +436,28 @@
     return addDoc(collection(db, 'tassen_bestellungen'), data);
   };
 
-  // Aktive Produkte aus dem Backend laden (Sammlung 'tassen_produkte')
-  async function loadProducts(){
+  // Eine Sammlung laden (aktive Einträge, nach 'reihenfolge' sortiert). Fehler/leer -> null
+  async function loadColl(name, keepInactive){
     if(!db) return null;
     try{
-      const snap = await getDocs(collection(db, 'tassen_produkte'));
-      const list = snap.docs.map(d=>d.data()).filter(p=>p.aktiv!==false);
+      const snap = await getDocs(collection(db, name));
+      let list = snap.docs.map(d=>d.data());
+      if(!keepInactive) list = list.filter(p=>p.aktiv!==false);
       list.sort((a,b)=>(a.reihenfolge||0)-(b.reihenfolge||0));
       return list;
-    }catch(e){ console.warn('Produkte konnten nicht geladen werden:', e.message); return null; }
+    }catch(e){ console.warn(name+' konnte nicht geladen werden:', e.message); return null; }
   }
-  loadProducts().then(list=> window.applyProducts && window.applyProducts(list));
+  loadColl('tassen_produkte').then(list=> window.applyProducts && window.applyProducts(list));
+
+  // Design-Hintergründe, Farben, Rahmenfarben, Vorlagen laden (mit Fallback in der Kundenseite)
+  Promise.all([
+    loadColl('tassen_hintergruende'),
+    loadColl('tassen_hgfarben'),
+    loadColl('tassen_rahmenfarben'),
+    loadColl('tassen_vorlagen')
+  ]).then(([hintergruende, hgfarben, rahmenfarben, vorlagen])=>{
+    window.applyBackends && window.applyBackends({ hintergruende, hgfarben, rahmenfarben, vorlagen });
+  });
 </script>
 
 <script>
@@ -258,7 +465,16 @@
    Editor (Fabric.js)
    ============================================================ */
 const canvas = new fabric.Canvas('c', { backgroundColor:'#ffffff', preserveObjectStacking:true });
-const previewDesign = document.getElementById('preview-design');
+canvas.allowTouchScrolling = false;
+
+/* Einheitliche, für Touch gut greifbare Anfasser für ALLE Objekte
+   (gilt auch für per Undo/JSON wiederhergestellte Objekte) */
+fabric.Object.prototype.cornerColor = '#95C11F';
+fabric.Object.prototype.cornerStyle = 'circle';
+fabric.Object.prototype.transparentCorners = false;
+fabric.Object.prototype.borderColor = '#7BA017';
+fabric.Object.prototype.cornerSize = 13;
+fabric.Object.prototype.touchCornerSize = 40;   // großzügige Trefferfläche am Finger
 
 /* Gestrichelter Design-Rahmen als Overlay über der Zeichenfläche
    (reines DOM-Element -> erscheint NICHT in der Druckdatei/Vorschau) */
@@ -267,53 +483,490 @@ designFrameEl.className = 'design-frame';
 designFrameEl.style.display = 'none';
 canvas.wrapperEl.appendChild(designFrameEl);
 
-/* Anteil Designbereich/Papier – steuert den Ausschnitt der Tassen-Vorschau */
+/* Hilfslinien (Mitte horizontal/vertikal) als DOM-Overlay */
+const snapV = document.createElement('div'); snapV.className = 'snap-line v';
+const snapH = document.createElement('div'); snapH.className = 'snap-line h';
+canvas.wrapperEl.appendChild(snapV); canvas.wrapperEl.appendChild(snapH);
+function hideSnap(){ snapV.style.display='none'; snapH.style.display='none'; }
+
+/* Einrasten an der Mitte + Hilfslinien anzeigen */
+canvas.on('object:moving', (e)=>{
+  const o = e.target; if(!o) return;
+  const W = canvas.getWidth(), H = canvas.getHeight(), T = 8;
+  const c = o.getCenterPoint();
+  let sx = null, sy = null;
+  if(Math.abs(c.x - W/2) < T) sx = W/2;
+  if(Math.abs(c.y - H/2) < T) sy = H/2;
+  if(sx!==null || sy!==null){
+    o.setPositionByOrigin(new fabric.Point(sx!==null?sx:c.x, sy!==null?sy:c.y), 'center', 'center');
+    o.setCoords();
+  }
+  if(sx!==null){ snapV.style.left = sx+'px'; snapV.style.display='block'; } else snapV.style.display='none';
+  if(sy!==null){ snapH.style.top  = sy+'px'; snapH.style.display='block'; } else snapH.style.display='none';
+});
+canvas.on('object:modified', hideSnap);
+canvas.on('mouse:up', hideSnap);
+canvas.on('selection:cleared', hideSnap);
+
+/* Anteil Designbereich/Papier – steuert die Größe des gestrichelten Design-Rahmens */
 let previewFx = 1, previewFy = 1;
 
-function updatePreview(){
-  const data = canvas.toDataURL({ format:'png' });
-  previewDesign.style.backgroundImage = `url(${data})`;
-  previewDesign.style.backgroundColor = canvas.backgroundColor;
-  previewDesign.style.backgroundRepeat = 'no-repeat';
-  previewDesign.style.backgroundPosition = 'center';
-  previewDesign.style.backgroundSize = (previewFx<1 || previewFy<1) ? `${(100/previewFx).toFixed(2)}% ${(100/previewFy).toFixed(2)}%` : 'cover';
-}
-canvas.on('after:render', updatePreview);
-
-/* Foto hochladen */
-document.getElementById('btn-upload').onclick = ()=>document.getElementById('file-input').click();
-document.getElementById('file-input').onchange = (e)=>{
-  const file = e.target.files[0]; if(!file) return;
+/* Foto laden (aus Datei-Auswahl ODER Drag & Drop), zentriert einfügen */
+function addImageFromFile(file){
+  if(!file){ return; }
+  if(!/^image\//.test(file.type)){ alert('Bitte eine Bilddatei wählen (JPG oder PNG).'); return; }
   const reader = new FileReader();
   reader.onload = (ev)=>{
     fabric.Image.fromURL(ev.target.result, (img)=>{
-      const scale = Math.min(300/img.width, 260/img.height);
-      img.set({ left:120, top:30, scaleX:scale, scaleY:scale, cornerColor:'#95C11F', cornerStyle:'circle', transparentCorners:false });
-      canvas.add(img); canvas.setActiveObject(img); canvas.renderAll();
+      const W = canvas.getWidth(), H = canvas.getHeight();
+      const scale = Math.min(W*0.7/img.width, H*0.8/img.height, 1);   // groß, aber nicht über Originalgröße
+      img.set({ originX:'center', originY:'center', left:W/2, top:H/2, scaleX:scale, scaleY:scale });
+      canvas.add(img); canvas.setActiveObject(img); canvas.renderAll(); syncObjBar();
     });
   };
   reader.readAsDataURL(file);
-  e.target.value = '';
-};
+}
+document.getElementById('btn-upload').onclick = ()=>document.getElementById('file-input').click();
+document.getElementById('file-input').onchange = (e)=>{ if(e.target.files[0]) addImageFromFile(e.target.files[0]); e.target.value = ''; };
+
+/* Drag & Drop: Foto direkt in die Designfläche ziehen */
+const stageEl = document.querySelector('.canvas-stage');
+if(stageEl){
+  ['dragenter','dragover'].forEach(ev=> stageEl.addEventListener(ev, (e)=>{ e.preventDefault(); stageEl.classList.add('dragover'); }));
+  ['dragleave','dragend'].forEach(ev=> stageEl.addEventListener(ev, (e)=>{ e.preventDefault(); stageEl.classList.remove('dragover'); }));
+  stageEl.addEventListener('drop', (e)=>{
+    e.preventDefault(); stageEl.classList.remove('dragover');
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if(file) addImageFromFile(file);
+  });
+}
+/* verhindert, dass ein daneben fallengelassenes Bild den Browser wegnavigiert */
+window.addEventListener('dragover', (e)=>e.preventDefault());
+window.addEventListener('drop', (e)=>e.preventDefault());
 
 /* Text hinzufügen */
 document.getElementById('btn-text').onclick = ()=>{
   const t = new fabric.IText('Dein Text', {
     left:200, top:130, fontFamily:document.getElementById('font-family').value,
     fill:document.getElementById('text-color').value, fontSize:48,
-    cornerColor:'#95C11F', cornerStyle:'circle', transparentCorners:false
+    cornerColor:'#95C11F', cornerStyle:'circle', transparentCorners:false, borderColor:'#7BA017'
   });
-  canvas.add(t); canvas.setActiveObject(t); canvas.renderAll();
+  canvas.add(t); canvas.setActiveObject(t); canvas.renderAll(); syncObjBar();
 };
 
-/* Auswahl / Steuerung */
-document.getElementById('btn-delete').onclick = ()=>{
-  const o = canvas.getActiveObject(); if(o){ canvas.remove(o); canvas.renderAll(); }
+/* Einheitliche Optik der Anfasser für neu erstellte Objekte */
+const HANDLE = { cornerColor:'#95C11F', cornerStyle:'circle', transparentCorners:false, borderColor:'#7BA017' };
+
+/* ============================================================
+   Sticker
+   ============================================================ */
+function addSticker(emoji){
+  const t = new fabric.IText(emoji, { left:canvas.getWidth()/2, top:canvas.getHeight()/2, originX:'center', originY:'center', fontSize:90, editable:false, ...HANDLE });
+  canvas.add(t); canvas.setActiveObject(t); canvas.renderAll(); syncObjBar();
+}
+document.querySelectorAll('#sticker-grid button').forEach(b=> b.onclick=()=>addSticker(b.dataset.sticker));
+
+/* ============================================================
+   Kategorie-Rail: Panel umschalten
+   ============================================================ */
+const railBtns = document.querySelectorAll('#cat-rail button');
+const panels   = document.querySelectorAll('.cat-panel .panel');
+railBtns.forEach(btn=>{
+  btn.onclick = ()=>{
+    railBtns.forEach(b=> b.classList.toggle('active', b===btn));
+    panels.forEach(p=> p.classList.toggle('active', p.dataset.panel===btn.dataset.cat));
+  };
+});
+
+/* ============================================================
+   Hintergrund: Farb-Swatches, eigener Wähler, Muster
+   ============================================================ */
+const DEFAULT_BG_COLORS = ['#ffffff','#000000','#95C11F','#7BA017','#1f2933','#f4f5f7','#FFD166','#EF476F',
+                   '#118AB2','#06D6A0','#FF9F1C','#9B5DE5','#F15BB5','#00BBF9','#FEE440','#8AC926',
+                   '#E63946','#457B9D','#2A9D8F','#E9C46A'];
+const bgSwatches = document.getElementById('bg-swatches');
+/* Hintergrundfarben aus Backend (Liste von {color}) oder Fallback rendern */
+function renderBgColors(list){
+  const cols = (list && list.length) ? list.map(x=>x.color).filter(Boolean) : DEFAULT_BG_COLORS;
+  bgSwatches.innerHTML = cols.map(c=>`<button class="swatch" style="background:${c}" data-c="${c}" title="${c}"></button>`).join('');
+  bgSwatches.querySelectorAll('.swatch').forEach(s=> s.onclick=()=>setSolidBg(s.dataset.c));
+}
+renderBgColors(null);
+/* entfernt die Auswahl-Markierung in BEIDEN Grids (Muster + Design-Hintergründe) */
+function clearAllBgHl(){ document.querySelectorAll('#pattern-grid .pat-swatch.on, #bg-designs .pat-swatch.on').forEach(b=>b.classList.remove('on')); }
+function setSolidBg(color){
+  curPattern = null; clearAllBgHl();
+  canvas.backgroundImage = null;                        // evtl. Design-Hintergrund entfernen
+  canvas.setBackgroundColor(color, ()=>{ canvas.renderAll(); });
+  document.getElementById('bg-color').value = color.length===7 ? color : '#ffffff';
+  saveHistory();
+}
+
+/* ---- Muster-Bibliothek (dekorative, kachelbare SVG-Motive wie bei CEWE) ---- */
+function svgURI(inner, size, bg){
+  const s = `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'>`
+          + `<rect width='100%' height='100%' fill='${bg}'/>${inner}</svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(s);
+}
+const PATTERNS = [
+  { id:'dots',     name:'Punkte',   size:40, inner:c=>`<circle cx='10' cy='10' r='5' fill='${c}'/><circle cx='30' cy='30' r='5' fill='${c}'/>` },
+  { id:'bigdots',  name:'Tupfen',   size:50, inner:c=>`<circle cx='25' cy='25' r='13' fill='${c}'/>` },
+  { id:'hearts',   name:'Herzen',   size:46, inner:c=>`<path d='M23,34 C14,26 6,20 6,14 C6,9 10,6 14,6 C17,6 20,9 23,13 C26,9 29,6 32,6 C36,6 40,9 40,14 C40,20 32,26 23,34 Z' fill='${c}'/>` },
+  { id:'stars',    name:'Sterne',   size:48, inner:c=>`<path d='M24,6 L29,19 L43,19 L32,28 L36,42 L24,34 L12,42 L16,28 L5,19 L19,19 Z' fill='${c}'/>` },
+  { id:'confetti', name:'Konfetti', size:60, inner:_=>`<rect x='8' y='10' width='9' height='4' rx='2' fill='#EF476F' transform='rotate(20 12 12)'/><rect x='40' y='15' width='9' height='4' rx='2' fill='#118AB2' transform='rotate(-35 44 17)'/><circle cx='30' cy='40' r='3.5' fill='#FFD166'/><rect x='15' y='44' width='8' height='4' rx='2' fill='#06D6A0' transform='rotate(45 19 46)'/><circle cx='49' cy='47' r='3.5' fill='#9B5DE5'/><rect x='29' y='6' width='8' height='4' rx='2' fill='#FF9F1C' transform='rotate(-15 33 8)'/><circle cx='9' cy='34' r='3' fill='#00BBF9'/>` },
+  { id:'stripes',  name:'Streifen', size:20, inner:c=>`<path d='M-5,5 L5,-5 M0,20 L20,0 M15,25 L25,15' stroke='${c}' stroke-width='6'/>` },
+  { id:'chevron',  name:'Zickzack', size:40, inner:c=>`<path d='M0,18 L10,8 L20,18 L30,8 L40,18 M0,34 L10,24 L20,34 L30,24 L40,34' fill='none' stroke='${c}' stroke-width='5'/>` },
+  { id:'checks',   name:'Karo',     size:40, inner:c=>`<rect width='20' height='20' fill='${c}'/><rect x='20' y='20' width='20' height='20' fill='${c}'/>` },
+  { id:'flowers',  name:'Blümchen', size:50, inner:c=>`<g fill='${c}'><circle cx='25' cy='15' r='6'/><circle cx='34' cy='22' r='6'/><circle cx='31' cy='33' r='6'/><circle cx='19' cy='33' r='6'/><circle cx='16' cy='22' r='6'/></g><circle cx='25' cy='25' r='5' fill='#FFD166'/>` },
+  { id:'triangle', name:'Dreiecke', size:40, inner:c=>`<path d='M20,8 L32,30 L8,30 Z' fill='${c}'/>` },
+  { id:'snow',     name:'Schnee',   size:44, inner:c=>`<g stroke='${c}' stroke-width='2.4' stroke-linecap='round'><line x1='22' y1='8' x2='22' y2='36'/><line x1='8' y1='22' x2='36' y2='22'/><line x1='12' y1='12' x2='32' y2='32'/><line x1='32' y1='12' x2='12' y2='32'/></g>` },
+  { id:'trees',    name:'Tannen',   size:44, inner:c=>`<path d='M22,7 L30,23 L14,23 Z' fill='${c}'/><path d='M22,15 L32,34 L12,34 Z' fill='${c}'/><rect x='20' y='34' width='4' height='5' fill='#7BA017'/>` }
+];
+const patGrid = document.getElementById('pattern-grid');
+let curPattern = null;
+patGrid.innerHTML = PATTERNS.map((p,i)=>`<button class="pat-swatch" data-i="${i}" title="${p.name}"></button>`).join('');
+patGrid.querySelectorAll('.pat-swatch').forEach((b,i)=>{
+  const p = PATTERNS[i];
+  b.style.backgroundImage = `url("${svgURI(p.inner('#95C11F'), p.size, '#ffffff')}")`;
+  b.style.backgroundSize = Math.round(p.size*0.62)+'px';
+  b.onclick = ()=>{ curPattern = p; clearAllBgHl(); b.classList.add('on'); applyCurPattern(); };
+});
+function applyCurPattern(){
+  if(!curPattern) return;
+  const fg = document.getElementById('pattern-color').value || '#95C11F';
+  const uri = svgURI(curPattern.inner(fg), curPattern.size, '#ffffff');
+  const im = new Image();
+  im.onload = ()=>{ canvas.backgroundImage = null; const pat = new fabric.Pattern({ source:im, repeat:'repeat' }); canvas.setBackgroundColor(pat, ()=>{ canvas.renderAll(); saveHistory(); }); };
+  im.src = uri;
+}
+document.getElementById('pattern-color').oninput = ()=>{ if(curPattern) applyCurPattern(); };
+document.getElementById('btn-pattern-none').onclick = ()=> setSolidBg(document.getElementById('bg-color').value);
+
+/* ---- Design-Hintergründe (Aquarell/Verläufe/Bokeh – wie CEWE „Trends") ---- */
+function bgURI(def, w, h){
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>`
+            + `<rect width='100%' height='100%' fill='${def.base||'#ffffff'}'/>${def.render(w,h)}</svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+/* Aquarell-Kleckse: organische Ränder über Turbulenz-Displacement */
+function wcBlobs(w,h,arr){
+  let defs='', body='';
+  arr.forEach((b,i)=>{
+    defs += `<filter id='wf${i}' x='-40%' y='-40%' width='180%' height='180%'>`
+          + `<feTurbulence type='fractalNoise' baseFrequency='${b.bf||'0.012 0.016'}' numOctaves='4' seed='${b.seed||i*9+3}' result='n'/>`
+          + `<feDisplacementMap in='SourceGraphic' in2='n' scale='${b.scale||60}'/></filter>`;
+    body += `<ellipse cx='${b.cx}' cy='${b.cy}' rx='${b.rx}' ry='${b.ry}' fill='${b.color}' opacity='${b.op||0.5}' filter='url(#wf${i})'/>`;
+  });
+  return `<defs>${defs}</defs>${body}`;
+}
+function bokehBg(w,h){
+  const defs=`<defs><filter id='bk'><feGaussianBlur stdDeviation='${Math.round(Math.max(w,h)*0.012)}'/></filter></defs>`;
+  const pts=[[.1,.2,.09],[.25,.62,.06],[.4,.3,.11],[.55,.72,.05],[.62,.24,.08],[.75,.55,.1],[.85,.2,.06],[.9,.75,.09],[.18,.85,.07],[.5,.5,.05],[.33,.14,.04],[.7,.86,.06],[.95,.45,.05],[.07,.5,.05]];
+  let body=`<g filter='url(#bk)'>`;
+  pts.forEach((p,i)=> body+=`<circle cx='${Math.round(w*p[0])}' cy='${Math.round(h*p[1])}' r='${Math.round(Math.min(w,h)*p[2])}' fill='#ffffff' opacity='${(0.35+(i%3)*0.14).toFixed(2)}'/>`);
+  return defs+body+`</g>`;
+}
+function streuBg(w,h){
+  const cols=['#EF9A9A','#A5D6A7','#90CAF9','#FFCC80','#CE93D8','#B0BEC5','#F48FB1'];
+  const pts=[[.08,.12],[.2,.3],[.33,.1],[.45,.28],[.58,.15],[.7,.34],[.82,.12],[.9,.3],[.14,.55],[.27,.7],[.4,.55],[.52,.72],[.64,.58],[.77,.74],[.88,.6],[.1,.85],[.24,.92],[.37,.82],[.5,.94],[.62,.85],[.75,.93],[.86,.82],[.95,.5],[.05,.4],[.3,.45],[.55,.42],[.8,.46]];
+  let body='';
+  pts.forEach((p,i)=>{ const c=cols[i%cols.length]; const r=(Math.min(w,h)*(0.006+(i%3)*0.004)).toFixed(1); body+=`<circle cx='${Math.round(w*p[0])}' cy='${Math.round(h*p[1])}' r='${r}' fill='${c}'/>`; });
+  return body;
+}
+function stripesHalf(w,h,color){
+  let s=''; const x0=Math.round(w*0.42), gap=h/15;
+  for(let y=gap*0.6; y<h; y+=gap){ s+=`<rect x='${x0}' y='${Math.round(y)}' width='${w-x0}' height='${Math.round(gap*0.42)}' fill='${color}'/>`; }
+  return s;
+}
+function stripesVertical(w,h,color){
+  let s=''; const gap=w/16;
+  for(let x=gap*0.5; x<w; x+=gap){ s+=`<rect x='${Math.round(x)}' y='0' width='${Math.round(gap*0.4)}' height='${h}' fill='${color}'/>`; }
+  return s;
+}
+function marbleBg(w,h){
+  const defs=`<defs><filter id='mb'><feTurbulence type='fractalNoise' baseFrequency='0.008 0.02' numOctaves='5' seed='7' result='n'/><feDisplacementMap in='SourceGraphic' in2='n' scale='42'/></filter></defs>`;
+  let veins='';
+  for(let i=0;i<6;i++){ const y=h*(0.12+i*0.15); veins+=`<path d='M0,${Math.round(y)} C ${Math.round(w*0.32)},${Math.round(y-h*0.07)} ${Math.round(w*0.6)},${Math.round(y+h*0.07)} ${w},${Math.round(y)}' fill='none' stroke='#c7bfae' stroke-width='${1.4+(i%2)*1.2}' opacity='0.65' filter='url(#mb)'/>`; }
+  return defs+veins;
+}
+function terrazzoBg(w,h){
+  const cols=['#EF9A9A','#90CAF9','#A5D6A7','#FFCC80','#CE93D8','#80CBC4','#F48FB1','#B0BEC5','#FFD54F'];
+  const pts=[[.08,.12],[.2,.3],[.33,.1],[.45,.28],[.58,.15],[.7,.34],[.82,.12],[.9,.3],[.14,.55],[.27,.7],[.4,.55],[.52,.72],[.64,.58],[.77,.74],[.88,.6],[.1,.85],[.24,.92],[.37,.82],[.5,.94],[.62,.85],[.75,.93],[.86,.82],[.95,.5],[.05,.4],[.3,.45],[.55,.42],[.8,.46]];
+  let body='';
+  pts.forEach((p,i)=>{ const c=cols[i%cols.length]; const r=(Math.min(w,h)*(0.012+(i%3)*0.006)).toFixed(1); const rot=(i*47)%360; body+=`<ellipse cx='${Math.round(w*p[0])}' cy='${Math.round(h*p[1])}' rx='${r}' ry='${(r*0.7).toFixed(1)}' fill='${c}' transform='rotate(${rot} ${Math.round(w*p[0])} ${Math.round(h*p[1])})'/>`; });
+  return body;
+}
+function bokehWarm(w,h){
+  const defs=`<defs><filter id='bw'><feGaussianBlur stdDeviation='${Math.round(Math.max(w,h)*0.012)}'/></filter></defs>`;
+  const cols=['#FFE0B2','#FFCC80','#FFF3E0','#FFD180'];
+  const pts=[[.12,.25,.1],[.28,.65,.06],[.42,.32,.12],[.58,.7,.05],[.66,.22,.08],[.78,.55,.11],[.88,.28,.06],[.92,.75,.09],[.2,.85,.07],[.5,.5,.05],[.35,.13,.04],[.72,.85,.06]];
+  let body=`<g filter='url(#bw)'>`;
+  pts.forEach((p,i)=> body+=`<circle cx='${Math.round(w*p[0])}' cy='${Math.round(h*p[1])}' r='${Math.round(Math.min(w,h)*p[2])}' fill='${cols[i%cols.length]}' opacity='${(0.4+(i%3)*0.14).toFixed(2)}'/>`);
+  return defs+body+`</g>`;
+}
+const BACKGROUNDS = [
+  { id:'wc-purple', name:'Aquarell Lila',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.28,cy:h*0.42,rx:w*0.34,ry:h*0.52,color:'#7E57C2',op:.5,seed:12,scale:70},{cx:w*0.16,cy:h*0.24,rx:w*0.22,ry:h*0.3,color:'#B39DDB',op:.5,seed:4,scale:52}]) },
+  { id:'wc-orange', name:'Aquarell Orange', render:(w,h)=>wcBlobs(w,h,[{cx:w*0.24,cy:h*0.5,rx:w*0.3,ry:h*0.6,color:'#FB8C00',op:.5,seed:7,scale:72},{cx:w*0.34,cy:h*0.32,rx:w*0.2,ry:h*0.26,color:'#FFB74D',op:.45,seed:15,scale:52}]) },
+  { id:'wc-pink',   name:'Aquarell Pink',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.3,cy:h*0.45,rx:w*0.34,ry:h*0.5,color:'#EC407A',op:.5,seed:9,scale:70},{cx:w*0.2,cy:h*0.7,rx:w*0.22,ry:h*0.28,color:'#F48FB1',op:.45,seed:20,scale:52}]) },
+  { id:'wc-red',    name:'Aquarell Rot',    render:(w,h)=>wcBlobs(w,h,[{cx:w*0.72,cy:h*0.5,rx:w*0.34,ry:h*0.55,color:'#E53935',op:.48,seed:2,scale:72},{cx:w*0.8,cy:h*0.7,rx:w*0.2,ry:h*0.26,color:'#EF9A9A',op:.42,seed:13,scale:50}]) },
+  { id:'wc-teal',   name:'Aquarell Türkis', render:(w,h)=>wcBlobs(w,h,[{cx:w*0.72,cy:h*0.5,rx:w*0.32,ry:h*0.55,color:'#26A69A',op:.5,seed:3,scale:70},{cx:w*0.8,cy:h*0.3,rx:w*0.2,ry:h*0.26,color:'#80CBC4',op:.45,seed:18,scale:52}]) },
+  { id:'wc-blue',   name:'Aquarell Blau',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.75,cy:h*0.55,rx:w*0.34,ry:h*0.55,color:'#1E88E5',op:.5,seed:6,scale:72},{cx:w*0.68,cy:h*0.75,rx:w*0.2,ry:h*0.24,color:'#90CAF9',op:.45,seed:14,scale:50}]) },
+  { id:'wc-green',  name:'Aquarell Grün',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.5,cy:h*0.22,rx:w*0.4,ry:h*0.34,color:'#66BB6A',op:.45,seed:8,scale:66},{cx:w*0.6,cy:h*0.3,rx:w*0.24,ry:h*0.24,color:'#A5D6A7',op:.4,seed:16,scale:48}]) },
+  { id:'grad-sunset', name:'Sonnenuntergang', base:'#FFF3E0', render:(w,h)=>`<defs><linearGradient id='gs' x1='0' y1='1' x2='0' y2='0'><stop offset='0' stop-color='#FFE0B2'/><stop offset='.55' stop-color='#FF8A65'/><stop offset='1' stop-color='#F06292'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gs)'/>` },
+  { id:'grad-sky',    name:'Himmel',          render:(w,h)=>`<defs><linearGradient id='gk' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#4FC3F7'/><stop offset='1' stop-color='#E1F5FE'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gk)'/>` },
+  { id:'grad-pastel', name:'Pastell',         render:(w,h)=>`<defs><linearGradient id='gp' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#FCE4EC'/><stop offset='.5' stop-color='#E1F5FE'/><stop offset='1' stop-color='#F1F8E9'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gp)'/>` },
+  { id:'wc-yellow', name:'Aquarell Gelb',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.28,cy:h*0.5,rx:w*0.34,ry:h*0.55,color:'#FBC02D',op:.5,seed:21,scale:70},{cx:w*0.18,cy:h*0.7,rx:w*0.2,ry:h*0.26,color:'#FFF176',op:.5,seed:31,scale:52}]) },
+  { id:'wc-coral',  name:'Aquarell Koralle',render:(w,h)=>wcBlobs(w,h,[{cx:w*0.7,cy:h*0.45,rx:w*0.34,ry:h*0.52,color:'#FF7043',op:.5,seed:22,scale:70},{cx:w*0.82,cy:h*0.28,rx:w*0.2,ry:h*0.26,color:'#FFAB91',op:.45,seed:33,scale:52}]) },
+  { id:'wc-lavender',name:'Aquarell Flieder',render:(w,h)=>wcBlobs(w,h,[{cx:w*0.3,cy:h*0.28,rx:w*0.4,ry:h*0.36,color:'#9575CD',op:.42,seed:23,scale:66},{cx:w*0.5,cy:h*0.2,rx:w*0.26,ry:h*0.24,color:'#D1C4E9',op:.5,seed:35,scale:48}]) },
+  { id:'wc-mint',   name:'Aquarell Mint',   render:(w,h)=>wcBlobs(w,h,[{cx:w*0.72,cy:h*0.55,rx:w*0.34,ry:h*0.55,color:'#26C6DA',op:.45,seed:24,scale:70},{cx:w*0.64,cy:h*0.75,rx:w*0.2,ry:h*0.24,color:'#B2EBF2',op:.5,seed:37,scale:50}]) },
+  { id:'wc-navy',   name:'Aquarell Nachtblau',render:(w,h)=>wcBlobs(w,h,[{cx:w*0.5,cy:h*0.8,rx:w*0.44,ry:h*0.4,color:'#283593',op:.42,seed:25,scale:64},{cx:w*0.4,cy:h*0.72,rx:w*0.26,ry:h*0.24,color:'#5C6BC0',op:.4,seed:39,scale:48}]) },
+  { id:'wc-rainbow',name:'Aquarell Regenbogen',render:(w,h)=>wcBlobs(w,h,[{cx:w*0.2,cy:h*0.4,rx:w*0.24,ry:h*0.4,color:'#EF5350',op:.42,seed:41,scale:60},{cx:w*0.5,cy:h*0.35,rx:w*0.24,ry:h*0.4,color:'#FFA726',op:.4,seed:42,scale:60},{cx:w*0.8,cy:h*0.4,rx:w*0.24,ry:h*0.4,color:'#42A5F5',op:.42,seed:43,scale:60}]) },
+  { id:'grad-ocean',  name:'Ozean',    render:(w,h)=>`<defs><linearGradient id='go' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#00B4DB'/><stop offset='1' stop-color='#0083B0'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#go)'/>` },
+  { id:'grad-peach',  name:'Pfirsich', render:(w,h)=>`<defs><linearGradient id='gpe' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#FFECD2'/><stop offset='1' stop-color='#FCB69F'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gpe)'/>` },
+  { id:'grad-berry',  name:'Beere',    render:(w,h)=>`<defs><linearGradient id='gb' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#C471ED'/><stop offset='1' stop-color='#F64F59'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gb)'/>` },
+  { id:'grad-lime',   name:'Frühling', render:(w,h)=>`<defs><linearGradient id='gl' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#A8E063'/><stop offset='1' stop-color='#F1F8E9'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gl)'/>` },
+  { id:'grad-rose',   name:'Roségold', render:(w,h)=>`<defs><linearGradient id='gr' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#F8CDDA'/><stop offset='1' stop-color='#E8A87C'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gr)'/>` },
+  { id:'grad-graphite',name:'Grau',    render:(w,h)=>`<defs><linearGradient id='gg' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#E0E0E0'/><stop offset='1' stop-color='#BdBdBd'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gg)'/>` },
+  { id:'marble', name:'Marmor',        base:'#f3f0ea', render:(w,h)=>marbleBg(w,h) },
+  { id:'terrazzo',name:'Terrazzo',     base:'#FAF6F0', render:(w,h)=>terrazzoBg(w,h) },
+  { id:'bokeh',  name:'Bokeh',          base:'#DCEEF9', render:(w,h)=>bokehBg(w,h) },
+  { id:'bokeh-warm',name:'Bokeh Gold',  base:'#5D4037', render:(w,h)=>bokehWarm(w,h) },
+  { id:'streu',  name:'Streublümchen',  base:'#FBF7F0', render:(w,h)=>streuBg(w,h) },
+  { id:'stripes-pink',name:'Streifen Rosa', base:'#FFF5F7', render:(w,h)=>stripesVertical(w,h,'#F8BBD0') },
+  { id:'stripes-blue',name:'Streifen Blau', base:'#F1F8FE', render:(w,h)=>stripesVertical(w,h,'#B3E5FC') },
+  { id:'mint',   name:'Mint & Streifen', base:'#ffffff', render:(w,h)=>`<rect width='${Math.round(w*0.42)}' height='${h}' fill='#C8E6C9'/>`+stripesHalf(w,h,'#A5D6A7') }
+];
+/* Builtin-Hintergründe nach id (für datengetriebene Auswahl aus dem Backend) */
+const BUILTIN_BG = {};
+BACKGROUNDS.forEach(def=> BUILTIN_BG[def.id] = def);
+function gradientSVG(w,h,c1,c2,dir){
+  const co = dir==='h' ? "x1='0' y1='0' x2='1' y2='0'" : dir==='diag' ? "x1='0' y1='0' x2='1' y2='1'" : "x1='0' y1='0' x2='0' y2='1'";
+  return `<defs><linearGradient id='gx' ${co}><stop offset='0' stop-color='${c1}'/><stop offset='1' stop-color='${c2||'#ffffff'}'/></linearGradient></defs><rect width='${w}' height='${h}' fill='url(#gx)'/>`;
+}
+/* Backend-Doc -> darstellbares Objekt {name, image?, def?} */
+function normalizeBg(d){
+  if(d.type==='image' && d.image) return { name:d.name, image:d.image, def:null };
+  if(d.type==='color' && d.color) return { name:d.name, image:null, def:{ base:d.color, render:()=>'' } };
+  if(d.type==='gradient' && d.color) return { name:d.name, image:null, def:{ base:d.color, render:(w,h)=>gradientSVG(w,h,d.color,d.color2,d.dir) } };
+  const b = BUILTIN_BG[d.builtinId];                       // type 'builtin' (Standard)
+  return b ? { name:d.name||b.name, image:null, def:b } : null;
+}
+const bgDesigns = document.getElementById('bg-designs');
+function renderBgDesigns(list){
+  const items = (list && list.length) ? list.map(normalizeBg).filter(Boolean)
+              : BACKGROUNDS.map(def=>({ name:def.name, def, image:null }));
+  bgDesigns.innerHTML = items.map((it,i)=>`<button class="pat-swatch" data-i="${i}" title="${it.name||''}"></button>`).join('');
+  bgDesigns.querySelectorAll('.pat-swatch').forEach((btn,i)=>{
+    const it = items[i];
+    btn.style.backgroundImage = `url("${it.image ? it.image : bgURI(it.def,150,112)}")`;
+    btn.style.backgroundSize = 'cover'; btn.style.backgroundRepeat = 'no-repeat';
+    btn.onclick = ()=>{ clearAllBgHl(); btn.classList.add('on'); it.image ? applyBgFromURL(it.image) : applyBgDesign(it.def); };
+  });
+}
+function scaleBgCover(img){
+  img.set({ originX:'left', originY:'top', left:0, top:0, scaleX:canvas.getWidth()/img.width, scaleY:canvas.getHeight()/img.height, selectable:false, evented:false });
+}
+function applyBgFromURL(url){
+  fabric.Image.fromURL(url, (img)=>{ curPattern = null; scaleBgCover(img); canvas.setBackgroundImage(img, ()=>{ canvas.renderAll(); saveHistory(); }); });
+}
+function applyBgDesign(def){
+  const H = Math.max(1, Math.round(1200*canvas.getHeight()/canvas.getWidth()));
+  applyBgFromURL(bgURI(def, 1200, H));
+}
+renderBgDesigns(null);
+document.getElementById('btn-bg-none').onclick = ()=>{ clearAllBgHl(); canvas.setBackgroundImage(null, ()=>{ canvas.renderAll(); saveHistory(); }); };
+
+/* ============================================================
+   Foto-Masken (clipPath) & Rahmen (stroke)
+   ============================================================ */
+const HEART_PATH = 'M50 88 C 18 62, 0 42, 0 24 C 0 9, 12 0, 25 0 C 38 0, 46 8, 50 18 C 54 8, 62 0, 75 0 C 88 0, 100 9, 100 24 C 100 42, 82 62, 50 88 Z';
+const STAR_PATH  = 'M50 3 L61 37 L97 37 L68 59 L79 93 L50 72 L21 93 L32 59 L3 37 L39 37 Z';
+function needsImage(){
+  const o = canvas.getActiveObject();
+  if(!o || o.type!=='image'){ alert('Bitte wähle zuerst ein hochgeladenes Foto aus.'); return null; }
+  return o;
+}
+function applyMask(kind){
+  const o = needsImage(); if(!o) return;
+  const w = o.width, h = o.height, s = Math.min(w,h)/2;
+  let clip = null;
+  if(kind==='circle')      clip = new fabric.Circle({ radius:s, originX:'center', originY:'center' });
+  else if(kind==='rounded')clip = new fabric.Rect({ width:w*0.94, height:h*0.94, rx:Math.min(w,h)*0.14, ry:Math.min(w,h)*0.14, originX:'center', originY:'center' });
+  else if(kind==='heart' || kind==='star'){
+    clip = new fabric.Path(kind==='heart'?HEART_PATH:STAR_PATH, { originX:'center', originY:'center' });
+    const sc = Math.min(w/clip.width, h/clip.height);
+    clip.scaleX = clip.scaleY = sc;
+  }
+  o.clipPath = clip;   // null = Maske entfernen
+  canvas.renderAll(); saveHistory();
+}
+function applyFrame(color){
+  const o = canvas.getActiveObject();
+  if(!o){ alert('Bitte wähle zuerst ein Objekt aus.'); return; }
+  if(color==='none'){ o.set({ strokeWidth:0, stroke:null }); }
+  else { o.set({ stroke:color, strokeWidth:+document.getElementById('frame-width').value, strokeUniform:true }); }
+  canvas.renderAll(); saveHistory();
+}
+document.querySelectorAll('#mask-grid button').forEach(b=> b.onclick=()=>applyMask(b.dataset.mask));
+/* Rahmenfarben aus Backend (Liste von {name,color}) oder Fallback */
+const DEFAULT_FRAME_COLORS = [{name:'Weiß',color:'#ffffff'},{name:'Schwarz',color:'#1f2933'},{name:'Gold',color:'#D4AF37'},{name:'Grün',color:'#95C11F'}];
+function renderFrameColors(list){
+  const cols = (list && list.length) ? list.filter(x=>x.color) : DEFAULT_FRAME_COLORS;
+  const fg = document.getElementById('frame-grid');
+  fg.innerHTML = `<button data-frame="none" title="Kein Rahmen">✕</button>` +
+    cols.map(c=>`<button data-frame="${c.color}" title="${c.name||c.color}"><span style="width:20px;height:20px;border-radius:4px;background:${c.color};border:1px solid rgba(0,0,0,.15);display:inline-block"></span></button>`).join('');
+  fg.querySelectorAll('button').forEach(b=> b.onclick=()=>applyFrame(b.dataset.frame));
+}
+renderFrameColors(null);
+document.getElementById('frame-width').oninput = ()=>{
+  const o = canvas.getActiveObject();
+  if(o && o.stroke){ o.set('strokeWidth', +document.getElementById('frame-width').value); canvas.renderAll(); }
 };
+
+/* ============================================================
+   Fertige Vorlagen
+   ============================================================ */
+const DEFAULT_TEMPLATES = [
+  { name:'Geburtstag',  emoji:'🎂', bg:'#FFF3D6', htext:'Alles Gute\nzum Geburtstag!', hfont:'Pacifico', hfill:'#EF476F', hsize:44, stickers:['🎉','🎂','🎈'] },
+  { name:'Weihnachten', emoji:'🎄', bg:'#E7F1E7', htext:'Frohe\nWeihnachten', hfont:'Pacifico', hfill:'#E63946', hsize:46, stickers:['🎄','❄️','🎁'] },
+  { name:'Liebe',       emoji:'❤️', bg:'#FDE7EF', htext:'Ich liebe\ndich ♥', hfont:'Pacifico', hfill:'#E63946', hsize:46, stickers:['❤️','🌹','😍'] },
+  { name:'Dankeschön',  emoji:'🌸', bg:'#EAF6EE', htext:'Dankeschön!', hfont:'Pacifico', hfill:'#2A9D8F', hsize:48, stickers:['🌸','🍀','✨'] },
+  { name:'Leer starten', emoji:'⬜', bg:'#ffffff', htext:'', hfont:'Pacifico', hfill:'#333333', hsize:44, stickers:[] }
+];
+function normalizeTmpl(d){
+  return { name:d.name, emoji:d.emoji, bg:d.bg||'#ffffff', htext:d.htext||'', hfont:d.hfont||'Pacifico',
+    hfill:d.hfill||'#333333', hsize:Number(d.hsize)||44,
+    stickers: Array.isArray(d.stickers) ? d.stickers : (d.stickers ? String(d.stickers).split(/[\s,]+/).filter(Boolean) : []) };
+}
+function applyTemplate(t){
+  if(!t) return;
+  if(canvas.getObjects().length && !confirm('Vorlage laden? Dein aktuelles Design wird ersetzt.')) return;
+  canvas.clear();
+  canvas.setBackgroundColor(t.bg||'#ffffff', ()=>canvas.renderAll());
+  document.getElementById('bg-color').value = t.bg||'#ffffff';
+  const cx = canvas.getWidth()/2, cy = canvas.getHeight()/2;
+  if(t.htext){
+    const tx = new fabric.IText(t.htext, { left:cx, top:cy-cy*0.25, originX:'center', originY:'center',
+      fontFamily:t.hfont, fill:t.hfill, fontSize:t.hsize, textAlign:'center', ...HANDLE });
+    canvas.add(tx);
+  }
+  (t.stickers||[]).forEach((emoji,i,arr)=>{
+    const spread = canvas.getWidth()*0.6, step = arr.length>1 ? spread/(arr.length-1) : 0;
+    const sx = cx - spread/2 + step*i;
+    const st = new fabric.IText(emoji, { left:sx, top:cy+cy*0.45, originX:'center', originY:'center', fontSize:64, editable:false, ...HANDLE });
+    canvas.add(st);
+  });
+  canvas.discardActiveObject(); canvas.renderAll(); saveHistory();
+}
+const tmplList = document.getElementById('tmpl-list');
+function renderTemplates(list){
+  const items = (list && list.length) ? list.map(normalizeTmpl) : DEFAULT_TEMPLATES;
+  tmplList.innerHTML = items.map((t,i)=>`<button data-i="${i}">${t.emoji||'✨'} ${t.name||'Vorlage'}</button>`).join('');
+  tmplList.querySelectorAll('button').forEach((b,i)=> b.onclick=()=>applyTemplate(items[i]));
+}
+renderTemplates(null);
+
+/* Vom Firebase-Loader mit den Backend-Listen aufgerufen (Fallback je Liste, falls null) */
+window.applyBackends = function(d){
+  d = d || {};
+  renderBgDesigns(d.hintergruende);
+  renderBgColors(d.hgfarben);
+  renderFrameColors(d.rahmenfarben);
+  renderTemplates(d.vorlagen);
+};
+
+/* ============================================================
+   Objekt-Kontextleiste (Ebenen, drehen, spiegeln, Text-Format …)
+   ============================================================ */
+const objBar = document.getElementById('obj-bar');
+const objSize = document.getElementById('obj-size');
+const isText = (o)=> o && (o.type==='i-text'||o.type==='text');
+
+function syncObjBar(){
+  const o = canvas.getActiveObject();
+  const has = !!o;
+  objBar.classList.toggle('disabled', !has);          // Leiste bleibt sichtbar, nur ausgegraut
+  objBar.classList.toggle('is-text', has && isText(o));
+  if(has && isText(o)){
+    objBar.querySelector('[data-act=bold]').classList.toggle('on', o.fontWeight==='bold');
+    objBar.querySelector('[data-act=italic]').classList.toggle('on', o.fontStyle==='italic');
+    objSize.value = Math.round(o.fontSize||48);
+  }
+}
+canvas.on('selection:created', syncObjBar);
+canvas.on('selection:updated', syncObjBar);
+canvas.on('selection:cleared', syncObjBar);
+
+const ALIGNS = ['left','center','right'];
+objBar.querySelectorAll('button[data-act]').forEach(btn=>{
+  btn.onclick = ()=>{
+    const o = canvas.getActiveObject(); if(!o) return;
+    switch(btn.dataset.act){
+      case 'front':  canvas.bringToFront(o); break;
+      case 'back':   canvas.sendToBack(o); break;
+      case 'rotate': o.rotate(((o.angle||0)+90)%360); break;
+      case 'flip':   o.set('flipX', !o.flipX); break;
+      case 'dup':    o.clone(cl=>{ cl.set({ left:(o.left||0)+24, top:(o.top||0)+24 }); canvas.add(cl); canvas.setActiveObject(cl); canvas.renderAll(); syncObjBar(); }); return;
+      case 'del':    canvas.remove(o); canvas.discardActiveObject(); break;
+      case 'bold':   if(isText(o)) o.set('fontWeight', o.fontWeight==='bold'?'normal':'bold'); break;
+      case 'italic': if(isText(o)) o.set('fontStyle', o.fontStyle==='italic'?'normal':'italic'); break;
+      case 'align':  if(isText(o)){ const n=ALIGNS[(ALIGNS.indexOf(o.textAlign||'left')+1)%3]; o.set('textAlign',n); btn.textContent={left:'⬅️',center:'↔️',right:'➡️'}[n]; } break;
+    }
+    canvas.renderAll(); syncObjBar();
+  };
+});
+objSize.oninput = ()=>{ const o=canvas.getActiveObject(); if(isText(o)){ o.set('fontSize', +objSize.value); canvas.renderAll(); } };
+
+/* Tastatur: Entf löscht, Strg+Z / Strg+Y für Rückgängig/Wiederholen */
+document.addEventListener('keydown', (e)=>{
+  const o = canvas.getActiveObject();
+  if((e.key==='Delete'||e.key==='Backspace') && o && !(isText(o)&&o.isEditing)){
+    e.preventDefault(); canvas.remove(o); canvas.discardActiveObject(); canvas.renderAll(); return;
+  }
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); undo(); }
+  if((e.ctrlKey||e.metaKey) && (e.key.toLowerCase()==='y' || (e.shiftKey && e.key.toLowerCase()==='z'))){ e.preventDefault(); redo(); }
+});
+
+/* ============================================================
+   Rückgängig / Wiederholen (Historie über Canvas-Snapshots)
+   ============================================================ */
+let history = [], histIndex = -1, histLock = false;
+const btnUndo = document.getElementById('btn-undo');
+const btnRedo = document.getElementById('btn-redo');
+const PROPS = ['fontWeight','fontStyle','textAlign','editable']; // Extra-Eigenschaften mitsichern
+
+function updateHistButtons(){ btnUndo.disabled = histIndex<=0; btnRedo.disabled = histIndex>=history.length-1; }
+function saveHistory(){
+  if(histLock) return;
+  const snap = JSON.stringify(canvas.toJSON(PROPS));
+  history = history.slice(0, histIndex+1);
+  history.push(snap); histIndex = history.length-1;
+  if(history.length>60){ history.shift(); histIndex--; }
+  updateHistButtons();
+}
+function loadHistory(snap){
+  histLock = true;
+  canvas.loadFromJSON(snap, ()=>{                 // stellt Objekte + Hintergrund (auch Muster) wieder her
+    const bg = canvas.backgroundColor;
+    if(typeof bg==='string') document.getElementById('bg-color').value = bg.length===7 ? bg : '#ffffff';
+    canvas.renderAll(); histLock=false; updateHistButtons(); syncObjBar();
+  });
+}
+function undo(){ if(histIndex>0){ histIndex--; loadHistory(history[histIndex]); } }
+function redo(){ if(histIndex<history.length-1){ histIndex++; loadHistory(history[histIndex]); } }
+btnUndo.onclick = undo;
+btnRedo.onclick = redo;
+canvas.on('object:added', saveHistory);
+canvas.on('object:modified', saveHistory);
+canvas.on('object:removed', saveHistory);
+saveHistory(); // Ausgangszustand
+
+/* Alles zurücksetzen */
 document.getElementById('btn-clear').onclick = ()=>{
-  if(confirm('Wirklich alles zurücksetzen?')){ canvas.clear(); canvas.backgroundColor='#ffffff'; document.getElementById('bg-color').value='#ffffff'; canvas.renderAll(); }
+  if(confirm('Wirklich alles zurücksetzen?')){ canvas.clear(); canvas.backgroundColor='#ffffff'; document.getElementById('bg-color').value='#ffffff'; canvas.renderAll(); saveHistory(); }
 };
 document.getElementById('bg-color').oninput = (e)=>{ canvas.backgroundColor = e.target.value; canvas.renderAll(); };
+document.getElementById('bg-color').onchange = saveHistory;
 
 /* Aktive Texteigenschaften ändern */
 function applyToActiveText(prop, val){
@@ -376,12 +1029,34 @@ function selectSize(idx){
   resizeCanvasTo(pB, pH, dB, dH);
 }
 
+/* Verfügbare Breite der Arbeitsfläche (je nach Fenster/Layout) */
+function currentStageW(){
+  const main = document.querySelector('.editor-main');
+  const avail = (main ? main.clientWidth : 0) - 28;   // minus Innenabstand
+  return Math.max(240, Math.min(1000, avail>0 ? avail : 1000));
+}
+
 /* Zeichenfläche = Papiergröße; gestrichelter Rahmen = Designbereich (zentriert) */
+let lastDims = null;
 function resizeCanvasTo(pB, pH, dB, dH){
-  const W = 700;
+  lastDims = [pB, pH, dB, dH];
+  const W = currentStageW();
+  const oldW = canvas.getWidth();
   const ratio = (pB>0 && pH>0) ? (pH/pB) : (320/760);
   const H = Math.round(W*ratio);
+
+  /* Vorhandene Objekte proportional mitskalieren, wenn sich die Breite ändert */
+  if(oldW && Math.abs(oldW-W) > 1 && canvas.getObjects().length){
+    const f = W/oldW;
+    canvas.getObjects().forEach(o=>{ o.set({ left:(o.left||0)*f, top:(o.top||0)*f, scaleX:(o.scaleX||1)*f, scaleY:(o.scaleY||1)*f }); o.setCoords(); });
+  }
   canvas.setDimensions({ width:W, height:H });
+
+  /* Design-Hintergrundbild neu auf die Fläche skalieren */
+  if(canvas.backgroundImage){
+    const bi = canvas.backgroundImage;
+    bi.set({ scaleX:W/bi.width, scaleY:H/bi.height }); bi.setCoords && bi.setCoords();
+  }
 
   const useFrame = (dB>0 && dH>0 && pB>0 && pH>0 && (dB<pB || dH<pH));
   previewFx = useFrame ? (dB/pB) : 1;
@@ -397,11 +1072,43 @@ function resizeCanvasTo(pB, pH, dB, dH){
     designFrameEl.style.display = 'none';
   }
   canvas.renderAll();
+
+  /* Panel-Höhe an die Editor-Fläche koppeln -> Karte ist in JEDEM Reiter gleich hoch,
+     die Designfläche bleibt an derselben Stelle und Größe. Lange Panels scrollen intern. */
+  const em = document.querySelector('.editor-main');
+  const cp = document.querySelector('.cat-panel');
+  if(em && cp){ cp.style.maxHeight = em.offsetHeight + 'px'; }
 }
+
+/* Bei Fenstergröße-Änderung Arbeitsfläche neu einpassen (leicht entprellt) */
+let resizeTimer = null;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    const main = document.querySelector('.editor-main');
+    if(lastDims && main && main.clientWidth>0) resizeCanvasTo(...lastDims);   // nur wenn Editor sichtbar
+  }, 150);
+});
 
 /* Menge */
 document.getElementById('qty-minus').onclick=()=>{ const q=document.getElementById('f-qty'); q.value=Math.max(1,+q.value-1); };
 document.getElementById('qty-plus').onclick=()=>{ const q=document.getElementById('f-qty'); q.value=+q.value+1; };
+
+/* ============================================================
+   Schritte: 1) Gestalten  →  2) Bestelldaten
+   ============================================================ */
+const stepDesign = document.getElementById('step-design');
+const stepOrder  = document.getElementById('step-order');
+function showStep(which){
+  stepDesign.style.display = (which==='design') ? 'block' : 'none';
+  stepOrder.style.display  = (which==='order')  ? 'block' : 'none';
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+document.getElementById('btn-to-order').onclick = ()=>{
+  if(canvas.getObjects().length===0){ alert('Bitte gestalte zuerst dein Produkt – füge ein Foto, einen Text oder einen Sticker hinzu.'); return; }
+  showStep('order');
+};
+document.getElementById('btn-back').onclick = ()=> showStep('design');
 
 /* ============================================================
    Bestellung absenden
@@ -448,10 +1155,10 @@ submitBtn.onclick = async ()=>{
     submitBtn.disabled = false; submitBtn.textContent = original;
   }
 };
-document.getElementById('btn-close').onclick=()=>document.getElementById('overlay').classList.remove('show');
+document.getElementById('btn-close').onclick=()=>{ document.getElementById('overlay').classList.remove('show'); showStep('design'); };
 
-/* Start-Vorschau */
-setTimeout(updatePreview, 300);
+/* Arbeitsfläche nach vollständigem Layout korrekt einpassen */
+window.addEventListener('load', ()=>{ if(lastDims) resizeCanvasTo(...lastDims); });
 
 /* Sicherheitsnetz: falls das Backend nicht antwortet, Standard-Produkt zeigen */
 setTimeout(()=>{ if(!PRODUCTS.length) window.applyProducts(null); }, 1800);
