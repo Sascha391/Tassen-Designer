@@ -829,13 +829,24 @@ frameWidth.onchange = ()=>{ if(canvas.getActiveObject()) saveHistory(); };
    Zierrahmen (PNG-Overlay über dem ganzen Design, aus dem Backend)
    ============================================================ */
 const borderGrid = document.getElementById('border-grid');
-/* PNG als Overlay-Bild einfügen – liegt über allen Objekten und ist im Export enthalten,
-   aber nicht anklickbar (kein Objekt). */
+/* Der Zierrand liegt genau auf dem DESIGN-BEREICH (dem Druckbild), nicht auf der
+   ganzen Papierfläche. previewFx/previewFy = Anteil Designbereich am Papier. */
+function borderRect(){
+  const W = canvas.getWidth(), H = canvas.getHeight();
+  const gw = W*previewFx, gh = H*previewFy;
+  return { left:(W-gw)/2, top:(H-gh)/2, w:gw, h:gh };
+}
+function placeBorder(img){
+  const r = borderRect();
+  img.set({ originX:'left', originY:'top', left:r.left, top:r.top,
+            scaleX:r.w/img.width, scaleY:r.h/img.height, selectable:false, evented:false });
+  img.setCoords && img.setCoords();
+}
+/* PNG als Overlay-Bild einfügen – liegt über allen Objekten, ist im Export enthalten,
+   aber nicht anklickbar (kein Objekt) und deckt exakt den Design-Bereich ab. */
 function applyBorder(url){
   fabric.Image.fromURL(url, (img)=>{
-    img.set({ originX:'left', originY:'top', left:0, top:0,
-              scaleX:canvas.getWidth()/img.width, scaleY:canvas.getHeight()/img.height,
-              selectable:false, evented:false });
+    placeBorder(img);
     canvas.setOverlayImage(img, ()=>{ canvas.renderAll(); saveHistory(); });
   });
 }
@@ -1117,12 +1128,6 @@ function resizeCanvasTo(pB, pH, dB, dH){
     const bi = canvas.backgroundImage;
     bi.set({ scaleX:W/bi.width, scaleY:H/bi.height }); bi.setCoords && bi.setCoords();
   }
-  /* Zierrahmen-Overlay ebenfalls neu auf die Fläche skalieren */
-  if(canvas.overlayImage){
-    const oi = canvas.overlayImage;
-    oi.set({ scaleX:W/oi.width, scaleY:H/oi.height }); oi.setCoords && oi.setCoords();
-  }
-
   const useFrame = (dB>0 && dH>0 && pB>0 && pH>0 && (dB<pB || dH<pH));
   previewFx = useFrame ? (dB/pB) : 1;
   previewFy = useFrame ? (dH/pH) : 1;
@@ -1136,6 +1141,8 @@ function resizeCanvasTo(pB, pH, dB, dH){
   } else {
     designFrameEl.style.display = 'none';
   }
+  /* Zierrahmen-Overlay auf den (jetzt bekannten) Design-Bereich neu einpassen */
+  if(canvas.overlayImage) placeBorder(canvas.overlayImage);
   canvas.renderAll();
 
   /* Panel-Höhe an die Editor-Fläche koppeln -> Karte ist in JEDEM Reiter gleich hoch,
