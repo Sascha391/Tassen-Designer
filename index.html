@@ -84,6 +84,8 @@
   .obj-bar .obj-sep{width:1px;align-self:stretch;background:var(--grau2);margin:0 2px}
   .obj-bar .size-ctrl{display:flex;align-items:center;gap:6px;font-size:.78rem;color:#616e7c}
   .obj-bar input[type=range]{width:90px;accent-color:var(--gruen)}
+  .obj-bar .img-only{display:none;align-items:center;gap:6px}
+  .obj-bar.is-img .img-only{display:inline-flex;flex-wrap:wrap}
 
   /* ===== CEWE-artiges Editor-Layout: Rail + Panel + Arbeitsfläche ===== */
   .editor-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -219,7 +221,7 @@
           <button data-cat="fotos" class="active" title="Fotos">🖼️<small>Fotos</small></button>
           <button data-cat="hintergrund" title="Hintergrund">🎨<small>Hinter&shy;grund</small></button>
           <button data-cat="cliparts" title="Cliparts">⬡<small>Cliparts</small></button>
-          <button data-cat="rahmen" title="Rahmen &amp; Masken">🔲<small>Rahmen</small></button>
+          <button data-cat="rahmen" title="Rahmen">🔲<small>Rahmen</small></button>
           <button data-cat="text" title="Text">✍️<small>Text</small></button>
           <button data-cat="vorlagen" title="Vorlagen">✨<small>Vorlagen</small></button>
         </div>
@@ -267,27 +269,20 @@
             </div>
           </div>
 
-          <!-- Rahmen & Masken -->
+          <!-- Rahmen -->
           <div class="panel" data-panel="rahmen">
-            <h3>Foto-Form (Maske)</h3>
-            <p class="panel-hint">Erst ein <b>Foto</b> auswählen, dann Form wählen.</p>
-            <div class="panel-grid" id="mask-grid">
-              <button data-mask="none" title="Original">▭</button>
-              <button data-mask="circle" title="Kreis">●</button>
-              <button data-mask="rounded" title="Abgerundet">▢</button>
-              <button data-mask="heart" title="Herz">❤</button>
-              <button data-mask="star" title="Stern">★</button>
-            </div>
-            <h3 style="margin-top:16px">Rahmenfarbe</h3>
-            <div class="panel-grid" id="frame-grid">
-              <button data-frame="none" title="Kein Rahmen">✕</button>
-              <button data-frame="#ffffff" title="Weiß"><span style="width:20px;height:20px;border-radius:4px;background:#fff;border:1px solid #ccc;display:inline-block"></span></button>
-              <button data-frame="#1f2933" title="Schwarz"><span style="width:20px;height:20px;border-radius:4px;background:#1f2933;display:inline-block"></span></button>
-              <button data-frame="#D4AF37" title="Gold"><span style="width:20px;height:20px;border-radius:4px;background:#D4AF37;display:inline-block"></span></button>
-              <button data-frame="#95C11F" title="Grün"><span style="width:20px;height:20px;border-radius:4px;background:#95C11F;display:inline-block"></span></button>
-            </div>
-            <label class="field">Rahmenstärke</label>
+            <h3>Rahmen</h3>
+            <p class="panel-hint" style="margin-top:0">Objekt auswählen, Farbe wählen und <b>Rahmen anwenden</b>.</p>
+            <label class="field">Rahmenfarbe</label>
+            <input type="color" id="frame-color-custom" value="#95C11F" />
+            <button class="btn btn-primary full-btn" id="btn-frame-apply" style="margin-top:8px">🔲 Rahmen anwenden</button>
+            <button class="btn btn-light full-btn" id="btn-frame-none" style="margin-top:8px">✕ Kein Rahmen</button>
+            <label class="field">Rahmenstärke: <span id="frame-width-val">16</span> px</label>
             <input type="range" id="frame-width" min="2" max="40" value="16">
+            <h3 style="margin-top:16px">Zierrahmen</h3>
+            <p class="panel-hint" style="margin-top:0">Dekorativer Rand über dem ganzen Design.</p>
+            <div class="pattern-grid" id="border-grid"></div>
+            <button class="btn btn-light full-btn" id="btn-border-none" style="margin-top:8px">✕ Kein Zierrahmen</button>
           </div>
 
           <!-- Text -->
@@ -336,8 +331,16 @@
               <button data-act="bold" title="Fett"><b>F</b></button>
               <button data-act="italic" title="Kursiv"><i>K</i></button>
               <button data-act="align" title="Ausrichtung">⬅️</button>
+              <button data-act="shadow" title="Schatten">☁️ Schatten</button>
               <span class="size-ctrl">A<input type="range" id="obj-size" min="12" max="160" value="48">A</span>
             </span>
+            <span class="img-only">
+              <span class="obj-sep"></span>
+              <button data-act="sw" title="Schwarz-Weiß">◑ S/W</button>
+              <button data-act="sepia" title="Sepia-Ton">Sepia</button>
+            </span>
+            <span class="obj-sep"></span>
+            <span class="size-ctrl" title="Deckkraft">Deckkraft<input type="range" id="obj-opacity" min="10" max="100" value="100"></span>
             <span class="obj-sep"></span>
             <button data-act="del" title="Löschen">🗑️ Löschen</button>
           </div>
@@ -454,9 +457,10 @@
     loadColl('tassen_hintergruende'),
     loadColl('tassen_hgfarben'),
     loadColl('tassen_rahmenfarben'),
-    loadColl('tassen_vorlagen')
-  ]).then(([hintergruende, hgfarben, rahmenfarben, vorlagen])=>{
-    window.applyBackends && window.applyBackends({ hintergruende, hgfarben, rahmenfarben, vorlagen });
+    loadColl('tassen_vorlagen'),
+    loadColl('tassen_raender')
+  ]).then(([hintergruende, hgfarben, rahmenfarben, vorlagen, raender])=>{
+    window.applyBackends && window.applyBackends({ hintergruende, hgfarben, rahmenfarben, vorlagen, raender });
   });
 </script>
 
@@ -466,6 +470,11 @@
    ============================================================ */
 const canvas = new fabric.Canvas('c', { backgroundColor:'#ffffff', preserveObjectStacking:true });
 canvas.allowTouchScrolling = false;
+
+/* Foto-Filter (S/W, Sepia) über das 2D-Backend rechnen – das WebGL-Backend
+   beschneidet große Fotos an seinem Textur-Limit (~2048 px). */
+try{ if(fabric.Canvas2dFilterBackend) fabric.filterBackend = new fabric.Canvas2dFilterBackend(); }
+catch(e){ /* Fallback: Standard-Backend bleibt aktiv */ }
 
 /* Einheitliche, für Touch gut greifbare Anfasser für ALLE Objekte
    (gilt auch für per Undo/JSON wiederhergestellte Objekte) */
@@ -777,51 +786,72 @@ renderBgDesigns(null);
 document.getElementById('btn-bg-none').onclick = ()=>{ clearAllBgHl(); canvas.setBackgroundImage(null, ()=>{ canvas.renderAll(); saveHistory(); }); };
 
 /* ============================================================
-   Foto-Masken (clipPath) & Rahmen (stroke)
+   Rahmen (stroke)
    ============================================================ */
-const HEART_PATH = 'M50 88 C 18 62, 0 42, 0 24 C 0 9, 12 0, 25 0 C 38 0, 46 8, 50 18 C 54 8, 62 0, 75 0 C 88 0, 100 9, 100 24 C 100 42, 82 62, 50 88 Z';
-const STAR_PATH  = 'M50 3 L61 37 L97 37 L68 59 L79 93 L50 72 L21 93 L32 59 L3 37 L39 37 Z';
-function needsImage(){
+/* ---- Rahmen: frei wählbare Farbe + Stärke ---- */
+const frameWidth       = document.getElementById('frame-width');
+const frameWidthVal    = document.getElementById('frame-width-val');
+const frameColorCustom = document.getElementById('frame-color-custom');
+
+/* Rahmen aufs aktive Objekt setzen; save=false für Live-Vorschau ohne Historie-Eintrag */
+function setFrame(color, save){
   const o = canvas.getActiveObject();
-  if(!o || o.type!=='image'){ alert('Bitte wähle zuerst ein hochgeladenes Foto aus.'); return null; }
-  return o;
-}
-function applyMask(kind){
-  const o = needsImage(); if(!o) return;
-  const w = o.width, h = o.height, s = Math.min(w,h)/2;
-  let clip = null;
-  if(kind==='circle')      clip = new fabric.Circle({ radius:s, originX:'center', originY:'center' });
-  else if(kind==='rounded')clip = new fabric.Rect({ width:w*0.94, height:h*0.94, rx:Math.min(w,h)*0.14, ry:Math.min(w,h)*0.14, originX:'center', originY:'center' });
-  else if(kind==='heart' || kind==='star'){
-    clip = new fabric.Path(kind==='heart'?HEART_PATH:STAR_PATH, { originX:'center', originY:'center' });
-    const sc = Math.min(w/clip.width, h/clip.height);
-    clip.scaleX = clip.scaleY = sc;
-  }
-  o.clipPath = clip;   // null = Maske entfernen
-  canvas.renderAll(); saveHistory();
-}
-function applyFrame(color){
-  const o = canvas.getActiveObject();
-  if(!o){ alert('Bitte wähle zuerst ein Objekt aus.'); return; }
+  if(!o) return false;
   if(color==='none'){ o.set({ strokeWidth:0, stroke:null }); }
-  else { o.set({ stroke:color, strokeWidth:+document.getElementById('frame-width').value, strokeUniform:true }); }
-  canvas.renderAll(); saveHistory();
+  else { o.set({ stroke:color, strokeWidth:+frameWidth.value, strokeUniform:true }); }
+  canvas.renderAll(); if(save) saveHistory(); return true;
 }
-document.querySelectorAll('#mask-grid button').forEach(b=> b.onclick=()=>applyMask(b.dataset.mask));
-/* Rahmenfarben aus Backend (Liste von {name,color}) oder Fallback */
-const DEFAULT_FRAME_COLORS = [{name:'Weiß',color:'#ffffff'},{name:'Schwarz',color:'#1f2933'},{name:'Gold',color:'#D4AF37'},{name:'Grün',color:'#95C11F'}];
-function renderFrameColors(list){
-  const cols = (list && list.length) ? list.filter(x=>x.color) : DEFAULT_FRAME_COLORS;
-  const fg = document.getElementById('frame-grid');
-  fg.innerHTML = `<button data-frame="none" title="Kein Rahmen">✕</button>` +
-    cols.map(c=>`<button data-frame="${c.color}" title="${c.name||c.color}"><span style="width:20px;height:20px;border-radius:4px;background:${c.color};border:1px solid rgba(0,0,0,.15);display:inline-block"></span></button>`).join('');
-  fg.querySelectorAll('button').forEach(b=> b.onclick=()=>applyFrame(b.dataset.frame));
-}
-renderFrameColors(null);
-document.getElementById('frame-width').oninput = ()=>{
+/* Farbwähler: Live-Vorschau, wenn ein Objekt gewählt ist (ohne Historie-Spam) */
+frameColorCustom.oninput  = ()=> setFrame(frameColorCustom.value, false);
+frameColorCustom.onchange = ()=>{ if(canvas.getActiveObject()) saveHistory(); };
+/* Klarer Button zum Anwenden – funktioniert auch, wenn die Farbe unverändert bleibt */
+document.getElementById('btn-frame-apply').onclick = ()=>{ if(!setFrame(frameColorCustom.value, true)) alert('Bitte wähle zuerst ein Objekt (Foto/Text) aus.'); };
+document.getElementById('btn-frame-none').onclick  = ()=>{ if(!setFrame('none', true)) alert('Bitte wähle zuerst ein Objekt aus.'); };
+/* Panel an das gerade gewählte Objekt angleichen */
+function syncFrameUI(){
   const o = canvas.getActiveObject();
-  if(o && o.stroke){ o.set('strokeWidth', +document.getElementById('frame-width').value); canvas.renderAll(); }
+  if(o && o.stroke && o.strokeWidth){
+    frameWidth.value = Math.round(o.strokeWidth);
+    if(typeof o.stroke==='string' && o.stroke.length===7) frameColorCustom.value = o.stroke;
+  }
+  frameWidthVal.textContent = frameWidth.value;
+}
+canvas.on('selection:created', syncFrameUI);
+canvas.on('selection:updated', syncFrameUI);
+frameWidth.oninput = ()=>{
+  frameWidthVal.textContent = frameWidth.value;
+  const o = canvas.getActiveObject();
+  if(o && o.stroke){ o.set('strokeWidth', +frameWidth.value); canvas.renderAll(); }
 };
+frameWidth.onchange = ()=>{ if(canvas.getActiveObject()) saveHistory(); };
+
+/* ============================================================
+   Zierrahmen (PNG-Overlay über dem ganzen Design, aus dem Backend)
+   ============================================================ */
+const borderGrid = document.getElementById('border-grid');
+/* PNG als Overlay-Bild einfügen – liegt über allen Objekten und ist im Export enthalten,
+   aber nicht anklickbar (kein Objekt). */
+function applyBorder(url){
+  fabric.Image.fromURL(url, (img)=>{
+    img.set({ originX:'left', originY:'top', left:0, top:0,
+              scaleX:canvas.getWidth()/img.width, scaleY:canvas.getHeight()/img.height,
+              selectable:false, evented:false });
+    canvas.setOverlayImage(img, ()=>{ canvas.renderAll(); saveHistory(); });
+  });
+}
+function clearBorderHl(){ borderGrid.querySelectorAll('.pat-swatch.on').forEach(b=>b.classList.remove('on')); }
+function renderBorders(list){
+  const items = (list||[]).filter(x=> x && x.image);
+  if(!items.length){ borderGrid.innerHTML = '<p class="panel-hint" style="grid-column:1/-1;margin:0">Noch keine Zierrahmen hinterlegt (im Backend hochladbar).</p>'; return; }
+  borderGrid.innerHTML = items.map((it,i)=>`<button class="pat-swatch" data-i="${i}" title="${it.name||''}"></button>`).join('');
+  borderGrid.querySelectorAll('.pat-swatch').forEach((btn,i)=>{
+    btn.style.backgroundImage = `url("${items[i].image}")`;
+    btn.style.backgroundSize = 'contain'; btn.style.backgroundRepeat = 'no-repeat'; btn.style.backgroundPosition = 'center';
+    btn.onclick = ()=>{ clearBorderHl(); btn.classList.add('on'); applyBorder(items[i].image); };
+  });
+}
+renderBorders(null);
+document.getElementById('btn-border-none').onclick = ()=>{ clearBorderHl(); canvas.setOverlayImage(null, ()=>{ canvas.renderAll(); saveHistory(); }); };
 
 /* ============================================================
    Fertige Vorlagen
@@ -871,8 +901,8 @@ window.applyBackends = function(d){
   d = d || {};
   renderBgDesigns(d.hintergruende);
   renderBgColors(d.hgfarben);
-  renderFrameColors(d.rahmenfarben);
   renderTemplates(d.vorlagen);
+  renderBorders(d.raender);
 };
 
 /* ============================================================
@@ -880,18 +910,30 @@ window.applyBackends = function(d){
    ============================================================ */
 const objBar = document.getElementById('obj-bar');
 const objSize = document.getElementById('obj-size');
+const objOpacity = document.getElementById('obj-opacity');
 const isText = (o)=> o && (o.type==='i-text'||o.type==='text');
+const isImg  = (o)=> o && o.type==='image';
+/* liefert den (ersten) Filter eines bestimmten Typs am Bild – oder undefined */
+const getFilter = (o,Ctor)=> (o.filters||[]).find(f=> f instanceof Ctor);
 
 function syncObjBar(){
   const o = canvas.getActiveObject();
   const has = !!o;
   objBar.classList.toggle('disabled', !has);          // Leiste bleibt sichtbar, nur ausgegraut
   objBar.classList.toggle('is-text', has && isText(o));
+  objBar.classList.toggle('is-img',  has && isImg(o));
   if(has && isText(o)){
     objBar.querySelector('[data-act=bold]').classList.toggle('on', o.fontWeight==='bold');
     objBar.querySelector('[data-act=italic]').classList.toggle('on', o.fontStyle==='italic');
+    objBar.querySelector('[data-act=shadow]').classList.toggle('on', !!o.shadow);
     objSize.value = Math.round(o.fontSize||48);
   }
+  if(has && isImg(o)){
+    const F = fabric.Image.filters;
+    objBar.querySelector('[data-act=sw]').classList.toggle('on', !!getFilter(o,F.Grayscale));
+    objBar.querySelector('[data-act=sepia]').classList.toggle('on', !!getFilter(o,F.Sepia));
+  }
+  if(has) objOpacity.value = Math.round((o.opacity==null?1:o.opacity)*100);
 }
 canvas.on('selection:created', syncObjBar);
 canvas.on('selection:updated', syncObjBar);
@@ -911,10 +953,25 @@ objBar.querySelectorAll('button[data-act]').forEach(btn=>{
       case 'bold':   if(isText(o)) o.set('fontWeight', o.fontWeight==='bold'?'normal':'bold'); break;
       case 'italic': if(isText(o)) o.set('fontStyle', o.fontStyle==='italic'?'normal':'italic'); break;
       case 'align':  if(isText(o)){ const n=ALIGNS[(ALIGNS.indexOf(o.textAlign||'left')+1)%3]; o.set('textAlign',n); btn.textContent={left:'⬅️',center:'↔️',right:'➡️'}[n]; } break;
+      case 'shadow': if(isText(o)){ o.set('shadow', o.shadow ? null : new fabric.Shadow({ color:'rgba(0,0,0,.4)', blur:6, offsetX:2, offsetY:3 })); saveHistory(); } break;
+      case 'sw':     if(isImg(o)){ toggleFilter(o, fabric.Image.filters.Grayscale); } return;
+      case 'sepia':  if(isImg(o)){ toggleFilter(o, fabric.Image.filters.Sepia); } return;
     }
     canvas.renderAll(); syncObjBar();
   };
 });
+
+/* ---- Foto-Filter (S/W, Sepia) ---- */
+function toggleFilter(o, Ctor){
+  o.filters = o.filters || [];
+  const i = o.filters.findIndex(f=> f instanceof Ctor);
+  if(i>=0) o.filters.splice(i,1); else o.filters.push(new Ctor());
+  o.applyFilters(); canvas.renderAll(); saveHistory(); syncObjBar();
+}
+
+/* ---- Deckkraft (für jedes Objekt) ---- */
+objOpacity.oninput  = ()=>{ const o=canvas.getActiveObject(); if(o){ o.set('opacity', +objOpacity.value/100); canvas.renderAll(); } };
+objOpacity.onchange = saveHistory;
 objSize.oninput = ()=>{ const o=canvas.getActiveObject(); if(isText(o)){ o.set('fontSize', +objSize.value); canvas.renderAll(); } };
 
 /* Tastatur: Entf löscht, Strg+Z / Strg+Y für Rückgängig/Wiederholen */
@@ -1056,6 +1113,11 @@ function resizeCanvasTo(pB, pH, dB, dH){
   if(canvas.backgroundImage){
     const bi = canvas.backgroundImage;
     bi.set({ scaleX:W/bi.width, scaleY:H/bi.height }); bi.setCoords && bi.setCoords();
+  }
+  /* Zierrahmen-Overlay ebenfalls neu auf die Fläche skalieren */
+  if(canvas.overlayImage){
+    const oi = canvas.overlayImage;
+    oi.set({ scaleX:W/oi.width, scaleY:H/oi.height }); oi.setCoords && oi.setCoords();
   }
 
   const useFrame = (dB>0 && dH>0 && pB>0 && pH>0 && (dB<pB || dH<pH));

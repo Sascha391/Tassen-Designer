@@ -158,6 +158,7 @@
       <button class="tab" data-view="backgrounds">🎨 Hintergründe</button>
       <button class="tab" data-view="colors">🖌️ Farben &amp; Rahmen</button>
       <button class="tab" data-view="templates">✨ Vorlagen</button>
+      <button class="tab" data-view="borders">🖼️ Zierränder</button>
     </div>
 
     <!-- BESTELLUNGEN -->
@@ -227,6 +228,16 @@
       </div>
       <div class="admin-grid" id="tmpl-admin-list"></div>
     </div>
+
+    <!-- ZIERRÄNDER -->
+    <div id="view-borders" style="display:none">
+      <div class="section-head">
+        <h2>Zierränder (PNG-Rahmen)</h2>
+        <button class="btn btn-primary" id="btn-new-border">＋ Zierrand hochladen</button>
+      </div>
+      <p style="color:#7b8794;font-size:.85rem;margin-bottom:16px">Dekorative Ränder als <b>PNG mit transparenter Mitte</b>. Sie werden im Editor über das ganze Design gelegt und mitgedruckt. Am besten im Seitenverhältnis des Druckblatts exportieren (z. B. 24×10 cm). <b>Beliebige Dateigröße</b> – das Bild wird beim Hochladen automatisch passend skaliert.</p>
+      <div class="admin-grid" id="border-list"></div>
+    </div>
   </div>
 </div>
 
@@ -281,6 +292,22 @@
       <div class="field inline" style="align-items:flex-end;padding-bottom:8px"><input type="checkbox" id="bg-aktiv" checked style="width:18px;height:18px"> <label style="margin:0">Sichtbar</label></div>
     </div>
     <div class="modal-actions"><button class="btn btn-light" id="bg-cancel">Abbrechen</button><button class="btn btn-primary" id="bg-save">Speichern</button></div>
+  </div>
+</div>
+
+<!-- ZIERRAND-MODAL -->
+<div class="modal-bg" id="border-modal">
+  <div class="modal">
+    <h3 id="border-modal-title">Zierrand</h3>
+    <div class="field"><label>Name</label><input type="text" id="border-name" placeholder="z. B. Blumenrand"></div>
+    <div class="field"><label>PNG-Bild (transparente Mitte – wird über das Design gelegt)</label>
+      <input type="file" id="border-image" accept="image/png,image/*"><div id="border-image-prev" style="margin-top:8px;font-size:.78rem;color:#7b8794"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Reihenfolge</label><input type="number" id="border-order" value="100"></div>
+      <div class="field inline" style="align-items:flex-end;padding-bottom:8px"><input type="checkbox" id="border-aktiv" checked style="width:18px;height:18px"> <label style="margin:0">Sichtbar</label></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-light" id="border-cancel">Abbrechen</button><button class="btn btn-primary" id="border-save">Speichern</button></div>
   </div>
 </div>
 
@@ -354,7 +381,7 @@ onAuthStateChanged(auth, (user)=>{
 });
 
 /* ---- Tabs ---- */
-const VIEWS = ['orders','products','backgrounds','colors','templates'];
+const VIEWS = ['orders','products','backgrounds','colors','templates','borders'];
 document.querySelectorAll('.tab').forEach(t=>{
   t.onclick=()=>{
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
@@ -635,7 +662,7 @@ const DEFAULT_TEMPLATES = [
 ];
 
 let unsubB = [];
-let bgs=[], hgfs=[], rfs=[], tmpls=[];
+let bgs=[], hgfs=[], rfs=[], tmpls=[], bords=[];
 const byOrder=(a,b)=>(a.reihenfolge||0)-(b.reihenfolge||0);
 function listenBackends(){
   unsubB.forEach(u=>u&&u()); unsubB=[];
@@ -643,6 +670,7 @@ function listenBackends(){
   unsubB.push(onSnapshot(collection(db,'tassen_hgfarben'), s=>{ hgfs=s.docs.map(d=>({id:d.id,...d.data()})); hgfs.sort(byOrder); renderHgf(); }));
   unsubB.push(onSnapshot(collection(db,'tassen_rahmenfarben'), s=>{ rfs=s.docs.map(d=>({id:d.id,...d.data()})); rfs.sort(byOrder); renderRf(); }));
   unsubB.push(onSnapshot(collection(db,'tassen_vorlagen'), s=>{ tmpls=s.docs.map(d=>({id:d.id,...d.data()})); tmpls.sort(byOrder); renderTmplAdmin(); }));
+  unsubB.push(onSnapshot(collection(db,'tassen_raender'), s=>{ bords=s.docs.map(d=>({id:d.id,...d.data()})); bords.sort(byOrder); renderBorderAdmin(); }, e=>{ $('border-list').innerHTML='<div class="empty">Fehler: '+e.message+'</div>'; }));
 }
 
 /* generische Verdrahtung: sichtbar-Haken, Reihenfolge, Löschen, Bearbeiten */
@@ -708,6 +736,83 @@ function renderTmplAdmin(){
   }).join('');
   wireAdmin('tmpl-admin-list','tassen_vorlagen', openTmplModal, tmpls);
 }
+
+/* ---- Zierränder (PNG) ---- */
+function renderBorderAdmin(){
+  if(!bords.length){ $('border-list').innerHTML='<div class="empty">Noch keine Zierränder. Klicke „＋ Zierrand hochladen" und wähle ein PNG mit transparenter Mitte.</div>'; return; }
+  $('border-list').innerHTML = bords.map(d=>`<div class="admin-card">
+      <div class="prev" style="background:repeating-conic-gradient(#e6e6e6 0% 25%, #fafafa 0% 50%) 50%/16px 16px"></div>
+      <div class="body"><div class="nm">${d.name||'—'}</div><div class="meta">PNG-Rahmen</div></div>
+      <div class="row">
+        <label class="aktiv-toggle"><input type="checkbox" data-akt="${d.id}" ${d.aktiv!==false?'checked':''}> sichtbar</label>
+        <input type="number" data-ord="${d.id}" value="${d.reihenfolge||0}" title="Reihenfolge">
+        <button class="icon-btn" data-edit="${d.id}" style="margin-left:auto" title="Bearbeiten">✏️</button>
+        <button class="icon-btn del" data-del="${d.id}" title="Löschen">🗑️</button>
+      </div></div>`).join('');
+  $('border-list').querySelectorAll('.prev').forEach((el,i)=>{
+    if(bords[i].image){
+      el.style.backgroundImage = 'url("'+bords[i].image+'"), repeating-conic-gradient(#e6e6e6 0% 25%, #fafafa 0% 50%)';
+      el.style.backgroundSize = 'contain, 16px 16px';
+      el.style.backgroundRepeat = 'no-repeat, repeat';
+      el.style.backgroundPosition = 'center, 50%';
+    }
+  });
+  wireAdmin('border-list','tassen_raender', openBorderModal, bords);
+}
+
+/* ---- Zierrand-Modal ---- */
+let borderEditId=null, borderImageData=null;
+/* PNG so weit wie nötig verkleinern, dass es sicher in ein Firestore-Dokument passt.
+   (Firestore erlaubt hart max. 1 MB pro Dokument – das lässt sich nicht abstellen.
+   Deshalb fügt sich jedes Bild automatisch ein, ganz ohne Warnung oder Fehler.) */
+function pngUnderLimit(im){
+  const LIMIT=1000000; let w=Math.min(im.width, 2400), data;
+  do{
+    const sc=w/im.width;
+    const c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(im.width*sc)); c.height=Math.max(1,Math.round(im.height*sc));
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    data=c.toDataURL('image/png');               // PNG -> Transparenz bleibt erhalten
+    if(data.length<=LIMIT) return data;
+    w=Math.round(w*0.85);
+  } while(w>200);
+  return data;                                    // Notfall: kleinstmögliche Version
+}
+$('border-image').onchange=(e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  $('border-image-prev').textContent='Bild wird verarbeitet …';
+  const r=new FileReader();
+  r.onload=ev=>{ const im=new Image(); im.onload=()=>{
+    borderImageData=pngUnderLimit(im);
+    const kb=Math.round(borderImageData.length/1024);
+    $('border-image-prev').textContent='Bild geladen ('+kb+' KB, automatisch passend skaliert)';
+  }; im.src=ev.target.result; };
+  r.readAsDataURL(f);
+};
+function openBorderModal(d){
+  borderEditId = d?d.id:null; borderImageData = (d&&d.image)||null;
+  $('border-modal-title').textContent = d?'Zierrand bearbeiten':'Zierrand hochladen';
+  $('border-name').value = (d&&d.name)||'';
+  $('border-order').value = (d&&d.reihenfolge)||nextOrder(bords);
+  $('border-aktiv').checked = d? d.aktiv!==false : true;
+  $('border-image-prev').textContent = (d&&d.image)?'Bild vorhanden (neues wählen zum Ersetzen)':'';
+  $('border-modal').classList.add('show');
+}
+$('btn-new-border').onclick=()=>openBorderModal(null);
+$('border-cancel').onclick=()=>$('border-modal').classList.remove('show');
+$('border-modal').onclick=(e)=>{ if(e.target.id==='border-modal') $('border-modal').classList.remove('show'); };
+$('border-save').onclick=async ()=>{
+  const name=$('border-name').value.trim()||'Zierrand';
+  if(!borderImageData){ alert('Bitte ein PNG-Bild wählen.'); return; }
+  const obj={ name, image:borderImageData, reihenfolge:parseInt($('border-order').value,10)||0, aktiv:$('border-aktiv').checked };
+  const btn=$('border-save'); btn.disabled=true; btn.textContent='Speichern …';
+  try{
+    if(borderEditId) await updateDoc(doc(db,'tassen_raender',borderEditId), obj);
+    else await addDoc(collection(db,'tassen_raender'), obj);
+    $('border-modal').classList.remove('show');
+  }catch(e){ alert('Fehler beim Speichern: '+e.message); }
+  finally{ btn.disabled=false; btn.textContent='Speichern'; }
+};
 
 /* ---- Seeding ---- */
 async function seed(coll, arr, existing){
