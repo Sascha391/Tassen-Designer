@@ -845,8 +845,11 @@ function renderBorders(list){
   if(!items.length){ borderGrid.innerHTML = '<p class="panel-hint" style="grid-column:1/-1;margin:0">Noch keine Zierrahmen hinterlegt (im Backend hochladbar).</p>'; return; }
   borderGrid.innerHTML = items.map((it,i)=>`<button class="pat-swatch" data-i="${i}" title="${it.name||''}"></button>`).join('');
   borderGrid.querySelectorAll('.pat-swatch').forEach((btn,i)=>{
-    btn.style.backgroundImage = `url("${items[i].image}")`;
-    btn.style.backgroundSize = 'contain'; btn.style.backgroundRepeat = 'no-repeat'; btn.style.backgroundPosition = 'center';
+    /* Karo-Hintergrund hinter dem Bild -> auch weiße/transparente Ränder sind in der Kachel sichtbar */
+    btn.style.backgroundImage = `url("${items[i].image}"), repeating-conic-gradient(#e2e2e2 0% 25%, #f7f7f7 0% 50%)`;
+    btn.style.backgroundSize = 'contain, 12px 12px';
+    btn.style.backgroundRepeat = 'no-repeat, repeat';
+    btn.style.backgroundPosition = 'center, center';
     btn.onclick = ()=>{ clearBorderHl(); btn.classList.add('on'); applyBorder(items[i].image); };
   });
 }
